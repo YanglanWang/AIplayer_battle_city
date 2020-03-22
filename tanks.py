@@ -3,6 +3,9 @@
 
 import os, pygame, time, random, uuid, sys
 
+import pyautogui
+
+
 class myRect(pygame.Rect):
 	""" Add type property """
 	def __init__(self, left, top, width, height, type):
@@ -1485,6 +1488,7 @@ class Game():
 
 		self.animateIntroScreen()
 
+		# pyautogui.press('enter')
 
 		main_loop = True
 		while main_loop:
@@ -1535,6 +1539,7 @@ class Game():
 					self.level, 0, [x, y], self.DIR_UP, (16*2, 0, 13*2, 13*2)
 				)
 				player.controls = [102, 119, 100, 115, 97]
+				# player.controls=[pygame.K_f,pygame.K_w,pygame.K_d,pygame.K_s,pygame.K_a]
 				players.append(player)
 
 		for player in players:
@@ -1997,6 +2002,8 @@ class Game():
 		self.active = True
 
 		self.draw()
+
+		# pyautogui.keyDown('up')
 
 		while self.running:
 
