@@ -1344,6 +1344,9 @@ class Game():
 
 		del players[:]
 		del bullets[:]
+
+
+
 		del enemies[:]
 		del bonuses[:]
 
@@ -1493,10 +1496,10 @@ class Game():
 		main_loop = True
 		while main_loop:
 			time_passed = self.clock.tick(50)
-
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					quit()
+
 				elif event.type == pygame.KEYDOWN:
 					if event.key == pygame.K_q:
 						quit()
