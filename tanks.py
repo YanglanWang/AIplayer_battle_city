@@ -1474,7 +1474,6 @@ class Game():
 		Redraw screen only when up or down key is pressed. When enter is pressed,
 		exit from this screen and start the game with selected number of players
 		"""
-
 		global players, screen
 
 		# stop game main loop (if any)

@@ -1,7 +1,6 @@
 import pyautogui
-import tanks, math, heapq, pygame
+import  math, heapq, tanks, pygame
 from multiprocessing import Process
-
 # pyautogui.press('enter')
 
 class LoadGame(tanks.Game):
@@ -10,6 +9,7 @@ class LoadGame(tanks.Game):
 
 
 	def autoshowMenu(self,bothplayers):
+
 		if bothplayers:
 			pyautogui.press('down')
 		pyautogui.press('enter')
@@ -17,6 +17,8 @@ class LoadGame(tanks.Game):
 		p1.start()
 		p2=Process(target=self.autonextLevel(bothplayers))
 		p2.start()
+		p1.join()
+		p2.join()
 
 
 
@@ -339,14 +341,16 @@ class LoadGame(tanks.Game):
 		if not auto:
 			self.showMenu()
 		else:
-			p1=Process(target=self.showMenu())
-			p1.start()
 			p2=Process(target=self.autoshowMenu(bothplayers))
+			p1.start()
 			p2.start()
+			p1.join()
+			p2.join()
 
 
 if __name__=='__main__':
 	autogame=LoadGame()
-	autogame.showMenu()
-
-	# autogame.run(auto=False,bothplayers=False)
+	tanks.castle=tanks.Castle()
+	# autogame.showMenu()
+	# autogame.nextLevel()
+	autogame.run(auto=True,bothplayers=False)
