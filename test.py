@@ -5,67 +5,51 @@ from multiprocessing import Manager
 # pyautogui.press('enter')
 
 class LoadGame(tanks.Game):
-	# def __init__(self):
-		# tanks.Game.__init__(self)
+	def __init__(self):
+		tanks.Game.__init__(self)
 
 
 
-	def getAction(self,arr,lock):
+	def getAction(self,arr,lock,d):
 	# def getAction(self):
 	# 	info=q.get()
-	# 	players=info[0]
-	# 	enemies=info[1]
-	# 	bullets=info[2]
-	# 	bonuses=info[3]
 
-		isFirstPlayer=True
+		isSecondPlayer=False
 		# keyboard={1:['up','w'],2:['right','d'],3:['down','s'],4:['left','a'],5:['enter','f']}
 		array=[0]*6
 
-		for player in players:
+		for player in d["players"]:
 
-			playerSurroundingInfo = dict()
-			playerSurroundingInfo["myself"] = [player.rect, player.direction, player.speed]
-			if len(players) == 1:
-				playerSurroundingInfo["otherplayers"] = []
-			else:
-				for others in players:
-					if player != others:
-						playerSurroundingInfo["otherplayers"] = [others.rect, others.direction, others.speed]
 
-			playerSurroundingInfo["enemies"] = []
-			for enemy in enemies:
-				playerSurroundingInfo["enemies"].append([enemy.rect, enemy.direction, enemy.speed, enemy.paused])
+			if len(d["bonuses"])!=0:
 
-			playerSurroundingInfo["bullets"] = []
-			for bullet in bullets:
-				playerSurroundingInfo["bullets"].append([bullet.rect, bullet.direction, bullet.speed])
-
-			playerSurroundingInfo["tiles"] = []
-			for tile in self.level.mapr:
-				playerSurroundingInfo["tiles"].append([tile.rect, tile.type])
-
-			playerSurroundingInfo["bonuses"] = bonuses
-
-			if playerSurroundingInfo["bonuses"]!=None:
-				cmd=self.getPath(player.rect.topleft,bonuses[0].rect.topleft, playerSurroundingInfo)
+				cmd=self.getPath(d["players"][int(isSecondPlayer)][0],d["bonuses"][0], d, isSecondPlayer)
 
 				if not cmd:
-					array[int(isFirstPlayer)]=cmd
+					array[int(isSecondPlayer)]=cmd
 			else:
-				sortedEnemies=sorted(playerSurroundingInfo["enemies"],key=lambda x:self.euclidean_distance((x[0].left,
-						x[0].top), (player[0].left, player[0].top)))
-				if len(sortedEnemies)!=0:
-					enemy=sortedEnemies[0]
 
-					astar_direction = self.getPath(player.rect.topleft, enemy.rect.topleft, playerSurroundingInfo)
-					inline_direction = self.inline_with_enemy(player.rect, enemy.rect)
-					array[int(isFirstPlayer)]=astar_direction
+				# sortedEnemies=sorted(d["enemies"],key=lambda x: self.euclidean_distance(x[0].topleft, d["players"][int(isSecondPlayer)][0].topleft))
+
+
+				if len(d["enemies"])!=0:
+					min_dict=float("inf")
+					min_index=len(d["enemies"])
+					for i in range(len(d["enemies"])):
+						tmp_dis=self.euclidean_distance(d["enemies"][i][0].topleft, d["players"][int(isSecondPlayer)][0].topleft)
+						if min_dict>tmp_dis:
+							min_dict=tmp_dis
+							min_index=i
+					enemy=d["enemies"][min_index]
+
+					astar_direction = self.getPath(d["players"][int(isSecondPlayer)][0], enemy[0], d, isSecondPlayer)
+					inline_direction = self.inline_with_enemy(player[0], enemy[0])
+					array[int(isSecondPlayer)]=astar_direction
 					if inline_direction:
-						array[int(isFirstPlayer)+1]=1
+						array[int(isSecondPlayer)+1]=1
 					else:
-						array[int(isFirstPlayer)+1]=0
-			isFirstPlayer=not isFirstPlayer
+						array[int(isSecondPlayer)+1]=0
+			isSecondPlayer=not isSecondPlayer
 		with lock:
 			arr=array
 
@@ -98,30 +82,35 @@ class LoadGame(tanks.Game):
 		return False
 
 
-	def getPath(self, origin, destination, info):
+	def getPath(self, origin, destination, info,isFirstPlayer):
 		# (DIR_UP, DIR_RIGHT, DIR_DOWN, DIR_LEFT) = range(4)
+		origin_cor=(origin.left,origin.top)
+		destination_cor=(destination.left,destination.top)
 
 		openSet=[]
 		cameFrom=dict()
 		gScore=dict()
-		gScore[origin]=0
+		gScore[origin_cor]=0
 		fScore=dict()
-		fScore[origin]=self.euclidean_distance(origin,destination)
+		fScore[origin_cor]=self.euclidean_distance(origin_cor,destination_cor)
 		heapq.heappush(openSet,origin)
-		speed = info["myself"][2]
+		speed = info["players"][int(isFirstPlayer)][2]
 		path=[]
 		while len(openSet)!=0:
 			current=heapq.heappop(openSet)
-			if self.isDestination(current,destination):
-				path=self.reconstructPath(cameFrom,current)
+			current_cor=(current.left,current.top)
+			if self.isDestination(current_cor,destination_cor):
+				path=self.reconstructPath(cameFrom,current_cor)
 				break
-			openSet.remove(current)
-			for point in self.neighbour(current, destination, speed, info):
-				tentatice_gScore=gScore[current]+speed
-				if point not in gScore.keys() or (tentatice_gScore<gScore[point]):
-					cameFrom[point]=current
-					gScore[point]=tentatice_gScore
-					fScore[point]=gScore[point]+self.euclidean_distance(point,destination)
+			# openSet.remove(current)
+			for point_cor in self.neighbour(current, destination, speed, info):
+				tentatice_gScore=gScore[current_cor]+speed
+				# point_cor=(point.left,point.top)
+				if point_cor not in gScore.keys() or (tentatice_gScore<gScore[point_cor]):
+					cameFrom[point_cor]=current_cor
+					gScore[point_cor]=tentatice_gScore
+					fScore[point_cor]=gScore[point_cor]+self.euclidean_distance(point_cor,destination_cor)
+					point=pygame.Rect(point_cor[0],point_cor[1],origin.width,origin.height)
 					if point not in openSet:
 						openSet.append(point)
 
@@ -155,9 +144,10 @@ class LoadGame(tanks.Game):
 		return totalPath
 
 	def neighbour(self, current, destination, speed, info):
+
 		(TILE_EMPTY, TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE) = range(6)
 
-		top, left = current
+		top, left = current.topleft
 		# Rect(left, top, width, height)
 		allowable_move = []
 
@@ -169,24 +159,25 @@ class LoadGame(tanks.Game):
 			temp_rect = pygame.Rect(new_left, new_top, 26, 26)
 
 			# check collision with enemy except goal
-			for enemy in info[2]:
-				if enemy[0] is not destination:
+			for enemy in info["enemies"]:
+				if not enemy[0].colliderect(destination):
 					if temp_rect.colliderect(enemy[0]):
 						move_up = False
 						break
 
 			# check collision with bullet
-			for bullet in info[3]:
+			for bullet in info["bullets"]:
 				if temp_rect.colliderect(bullet[0]):
 					move_up = False
 					break
 
 			# check collision with tile
 			if move_up:
-				for tile in info[4]:
+				for tile in self.level.mapr:
 					# not a grass , frozen tile
-					if tile[1] != TILE_GRASS or tile[1]!=TILE_FROZE:
-						if temp_rect.colliderect(tile[0]):
+					if tile.type != TILE_GRASS and tile.type!=TILE_FROZE:
+						tile_rect=pygame.Rect(tile.left,tile.top,tile.width,tile.height)
+						if temp_rect.colliderect(tile_rect):
 							move_up = False
 							break
 
@@ -201,24 +192,25 @@ class LoadGame(tanks.Game):
 			temp_rect = pygame.Rect(new_left, new_top, 26, 26)
 
 			# check collision with enemy except goal
-			for enemy in info[2]:
-				if enemy[0] is not destination:
+			for enemy in info["enemies"]:
+				if not enemy[0].colliderect(destination):
 					if temp_rect.colliderect(enemy[0]):
 						move_right = False
 						break
 
 			# check collision with bullet
-			for bullet in info[3]:
+			for bullet in info["bullets"]:
 				if temp_rect.colliderect(bullet[0]):
 					move_right = False
 					break
 
 			# check collision with tile
 			if move_right:
-				for tile in info[4]:
+				for tile in self.level.mapr:
 					# not a grass, frozen tile
-					if tile[1] != TILE_GRASS or tile[1]!=TILE_FROZE:
-						if temp_rect.colliderect(tile[0]):
+					if tile.type != TILE_GRASS and tile.type!=TILE_FROZE:
+						tile_rect=pygame.Rect(tile.left,tile.top,tile.width,tile.height)
+						if temp_rect.colliderect(tile_rect):
 							move_right = False
 							break
 
@@ -233,24 +225,25 @@ class LoadGame(tanks.Game):
 			temp_rect = pygame.Rect(new_left, new_top, 26, 26)
 
 			# check collision with enemy except goal
-			for enemy in info[2]:
-				if enemy[0] is not destination:
+			for enemy in info["enemies"]:
+				if not enemy[0].colliderect(destination):
 					if temp_rect.colliderect(enemy[0]):
 						move_down = False
 						break
 
 			# check collision with bullet
-			for bullet in info[3]:
+			for bullet in info["bullets"]:
 				if temp_rect.colliderect(bullet[0]):
 					move_down = False
 					break
 
 			# check collision with tile
 			if move_down:
-				for tile in info[4]:
+				for tile in self.level.mapr:
 					# not a grass , frozn tile
-					if tile[1] != TILE_GRASS or tile[1]!=TILE_FROZE:
-						if temp_rect.colliderect(tile[0]):
+					if tile.type != TILE_GRASS and tile.type!=TILE_FROZE:
+						tile_rect=pygame.Rect(tile.left,tile.top,tile.width,tile.height)
+						if temp_rect.colliderect(tile_rect):
 							move_down = False
 							break
 
@@ -265,24 +258,25 @@ class LoadGame(tanks.Game):
 			temp_rect = pygame.Rect(new_left, new_top, 26, 26)
 
 			# check collision with enemy except goal
-			for enemy in info[2]:
-				if enemy[0] is not destination:
+			for enemy in info["enemies"]:
+				if not enemy[0].colliderect(destination):
 					if temp_rect.colliderect(enemy[0]):
 						move_left = False
 						break
 
 			# check collision with bullet
-			for bullet in info[3]:
+			for bullet in info["bullets"]:
 				if temp_rect.colliderect(bullet[0]):
 					move_left = False
 					break
 
 			# check collision with tile
 			if move_left:
-				for tile in info[4]:
+				for tile in self.level.mapr:
 					# not a grass , frozn tile
-					if tile[1] != TILE_GRASS or tile[1]!=TILE_FROZE:
-						if temp_rect.colliderect(tile[0]):
+					if tile.type != TILE_GRASS and tile.type!=TILE_FROZE:
+						tile_rect=pygame.Rect(tile.left,tile.top,tile.width,tile.height)
+						if temp_rect.colliderect(tile_rect):
 							move_left = False
 							break
 
@@ -349,12 +343,16 @@ class LoadGame(tanks.Game):
 
 			arr = mp.Array('i', [0,0,0,0])
 			lock = mp.Lock()
-			q=mp.Queue()
-			process = mp.Process(target=self.nextLevel, args=(arr, lock))
+			# q=mp.Queue()
+			manager=mp.Manager()
+			d=manager.dict()
+			self.nextLevel()
+			process = mp.Process(target=self.nextLevel2, args=(arr, lock,d))
 			process.start()
 			# self.nextLevel()
 			while True:
-				self.getAction(arr,lock)
+
+				self.getAction(arr,lock,d)
 
 
 

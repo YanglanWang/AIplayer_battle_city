@@ -1994,69 +1994,9 @@ class Game():
 
 		print("Stage "+str(self.stage)+" completed")
 
-	def nextLevelNew(self, arr,lock):
-
-	#
-		self.nextLevel()
-
-
-	def nextLevel(self,arr,lock):
-	# def nextLevel(self):
-
-		""" Start next level """
+	def nextLevel2(self, arr,lock, d):
 
 		global castle, players, bullets, bonuses, play_sounds, sounds
-
-		del bullets[:]
-		del enemies[:]
-		del bonuses[:]
-		castle.rebuild()
-		del gtimer.timers[:]
-
-		# load level
-		self.stage += 1
-		self.level = Level(self.stage)
-		self.timefreeze = False
-
-		# set number of enemies by types (basic, fast, power, armor) according to level
-		levels_enemies = (
-			(18,2,0,0), (14,4,0,2), (14,4,0,2), (2,5,10,3), (8,5,5,2),
-			(9,2,7,2), (7,4,6,3), (7,4,7,2), (6,4,7,3), (12,2,4,2),
-			(5,5,4,6), (0,6,8,6), (0,8,8,4), (0,4,10,6), (0,2,10,8),
-			(16,2,0,2), (8,2,8,2), (2,8,6,4), (4,4,4,8), (2,8,2,8),
-			(6,2,8,4), (6,8,2,4), (0,10,4,6), (10,4,4,2), (0,8,2,10),
-			(4,6,4,6), (2,8,2,8), (15,2,2,1), (0,4,10,6), (4,8,4,4),
-			(3,8,3,6), (6,4,2,8), (4,4,4,8), (0,10,4,6), (0,6,4,10)
-		)
-
-		if self.stage <= 35:
-			enemies_l = levels_enemies[self.stage - 1]
-		else:
-			enemies_l = levels_enemies[34]
-
-		self.level.enemies_left = [0]*enemies_l[0] + [1]*enemies_l[1] + [2]*enemies_l[2] + [3]*enemies_l[3]
-		random.shuffle(self.level.enemies_left)
-
-		if play_sounds:
-			sounds["start"].play()
-			gtimer.add(4330, lambda :sounds["bg"].play(-1), 1)
-
-		self.reloadPlayers()
-
-		gtimer.add(3000, lambda :self.spawnEnemy())
-
-		# if True, start "game over" animation
-		self.game_over = False
-
-		# if False, game will end w/o "game over" bussiness
-		self.running = True
-
-		# if False, players won't be able to do anything
-		self.active = True
-
-		self.draw()
-
-		# pyautogui.keyDown('up')
 
 		while self.running:
 
@@ -2085,7 +2025,6 @@ class Game():
 					pyautogui.press("enter")
 				if arr[3] == 1:
 					pyautogui.press("f")
-
 
 			for event in pygame.event.get():
 				if event.type == pygame.MOUSEBUTTONDOWN:
@@ -2151,7 +2090,6 @@ class Game():
 						player.move(self.DIR_LEFT);
 				player.update(time_passed)
 
-
 			for enemy in enemies:
 				if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:
 					enemies.remove(enemy)
@@ -2196,11 +2134,95 @@ class Game():
 
 			self.draw()
 
-			q.put([players,enemies,bullets,bonuses])
-			# d["players"]=players
-			# d["enemies"]=enemies
-			# d["bullets"]=bullets
-			# d["bonuses"]=bonuses
+			# d["players"]=[[1,2],[3,4]]
+			playersinfo = []
+			enemiesinfo = []
+			bulletsinfo = []
+			bonusesinfo = []
+			for player in players:
+				playersinfo.append([player.rect, player.direction, player.speed])
+			d["players"] = playersinfo
+
+			for enemy in enemies:
+				enemiesinfo.append([enemy.rect, enemy.direction, enemy.speed])
+			d["enemies"] = enemiesinfo
+
+			for bullet in bullets:
+				bulletsinfo.append([bullet.rect, bullet.direction, bullet.speed])
+			d["bullets"] = bulletsinfo
+
+			for bonus in bonuses:
+				bonusesinfo.append([bonus.rect])
+			d["bonuses"] = bonusesinfo
+		# d["tiles"]=self.level.mapr
+
+		# q.put([players,enemies,bullets,bonuses])
+		# d["players"]=players
+		# d["enemies"]=enemies
+		# d["bullets"]=bullets
+		# d["bonuses"]=bonuses
+	#
+		self.nextLevel()
+
+
+	def nextLevel(self):
+
+		""" Start next level """
+
+		global castle, players, bullets, bonuses, play_sounds, sounds
+
+		del bullets[:]
+		del enemies[:]
+		del bonuses[:]
+		castle.rebuild()
+		del gtimer.timers[:]
+
+		# load level
+		self.stage += 1
+		self.level = Level(self.stage)
+		self.timefreeze = False
+
+		# set number of enemies by types (basic, fast, power, armor) according to level
+		levels_enemies = (
+			(18,2,0,0), (14,4,0,2), (14,4,0,2), (2,5,10,3), (8,5,5,2),
+			(9,2,7,2), (7,4,6,3), (7,4,7,2), (6,4,7,3), (12,2,4,2),
+			(5,5,4,6), (0,6,8,6), (0,8,8,4), (0,4,10,6), (0,2,10,8),
+			(16,2,0,2), (8,2,8,2), (2,8,6,4), (4,4,4,8), (2,8,2,8),
+			(6,2,8,4), (6,8,2,4), (0,10,4,6), (10,4,4,2), (0,8,2,10),
+			(4,6,4,6), (2,8,2,8), (15,2,2,1), (0,4,10,6), (4,8,4,4),
+			(3,8,3,6), (6,4,2,8), (4,4,4,8), (0,10,4,6), (0,6,4,10)
+		)
+
+		if self.stage <= 35:
+			enemies_l = levels_enemies[self.stage - 1]
+		else:
+			enemies_l = levels_enemies[34]
+
+		self.level.enemies_left = [0]*enemies_l[0] + [1]*enemies_l[1] + [2]*enemies_l[2] + [3]*enemies_l[3]
+		random.shuffle(self.level.enemies_left)
+
+		if play_sounds:
+			sounds["start"].play()
+			gtimer.add(4330, lambda :sounds["bg"].play(-1), 1)
+
+		self.reloadPlayers()
+
+		gtimer.add(3000, lambda :self.spawnEnemy())
+
+		# if True, start "game over" animation
+		self.game_over = False
+
+		# if False, game will end w/o "game over" bussiness
+		self.running = True
+
+		# if False, players won't be able to do anything
+		self.active = True
+
+		self.draw()
+
+		# pyautogui.keyDown('up')
+
+
 
 
 gtimer = Timer()
