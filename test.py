@@ -1,61 +1,57 @@
 import pyautogui
 import  math, heapq, tanks, pygame
-from multiprocessing import Process
+import multiprocessing as mp
+from multiprocessing import Manager
 # pyautogui.press('enter')
 
 class LoadGame(tanks.Game):
-	def __init__(self):
-		tanks.Game.__init__(self)
-
-
-	def autoshowMenu(self,bothplayers):
-
-		if bothplayers:
-			pyautogui.press('down')
-		pyautogui.press('enter')
-		p1=Process(target=self.nextLevel())
-		p1.start()
-		p2=Process(target=self.autonextLevel(bothplayers))
-		p2.start()
-		p1.join()
-		p2.join()
+	# def __init__(self):
+		# tanks.Game.__init__(self)
 
 
 
-	def autonextLevel(self,bothplayers):
-		global castle, players, bullets, bonuses, play_sounds, sounds, enemies
+	def getAction(self,arr,lock):
+	# def getAction(self):
+	# 	info=q.get()
+	# 	players=info[0]
+	# 	enemies=info[1]
+	# 	bullets=info[2]
+	# 	bonuses=info[3]
+
 		isFirstPlayer=True
-		keyboard={1:['up','w'],2:['right','d'],3:['down','s'],4:['left','a'],5:['enter','f']}
+		# keyboard={1:['up','w'],2:['right','d'],3:['down','s'],4:['left','a'],5:['enter','f']}
+		array=[0]*6
 
 		for player in players:
+
 			playerSurroundingInfo = dict()
-			playerSurroundingInfo["myself"]=[player.rect,player.direction,player.speed]
+			playerSurroundingInfo["myself"] = [player.rect, player.direction, player.speed]
 			if len(players) == 1:
-				playerSurroundingInfo["otherplayers"]=[]
+				playerSurroundingInfo["otherplayers"] = []
 			else:
 				for others in players:
-					if player!=others:
-						playerSurroundingInfo["otherplayers"]=[others.rect,others.direction,others.speed]
+					if player != others:
+						playerSurroundingInfo["otherplayers"] = [others.rect, others.direction, others.speed]
 
-			playerSurroundingInfo["enemies"]=[]
+			playerSurroundingInfo["enemies"] = []
 			for enemy in enemies:
-				playerSurroundingInfo["enemies"].append([enemy.rect,enemy.direction,enemy.speed,enemy.paused])
+				playerSurroundingInfo["enemies"].append([enemy.rect, enemy.direction, enemy.speed, enemy.paused])
 
-			playerSurroundingInfo["bullets"]=[]
+			playerSurroundingInfo["bullets"] = []
 			for bullet in bullets:
-				playerSurroundingInfo["bullets"].append([bullet.rect,bullet.direction,bullet.speed])
+				playerSurroundingInfo["bullets"].append([bullet.rect, bullet.direction, bullet.speed])
 
-			playerSurroundingInfo["tiles"]=[]
+			playerSurroundingInfo["tiles"] = []
 			for tile in self.level.mapr:
-				playerSurroundingInfo["tiles"].append([tile.rect,tile.type])
+				playerSurroundingInfo["tiles"].append([tile.rect, tile.type])
 
-			playerSurroundingInfo["bonuses"]=bonuses
+			playerSurroundingInfo["bonuses"] = bonuses
 
 			if playerSurroundingInfo["bonuses"]!=None:
 				cmd=self.getPath(player.rect.topleft,bonuses[0].rect.topleft, playerSurroundingInfo)
 
 				if not cmd:
-					pyautogui.press(keyboard[cmd][int(isFirstPlayer)])
+					array[int(isFirstPlayer)]=cmd
 			else:
 				sortedEnemies=sorted(playerSurroundingInfo["enemies"],key=lambda x:self.euclidean_distance((x[0].left,
 						x[0].top), (player[0].left, player[0].top)))
@@ -64,10 +60,14 @@ class LoadGame(tanks.Game):
 
 					astar_direction = self.getPath(player.rect.topleft, enemy.rect.topleft, playerSurroundingInfo)
 					inline_direction = self.inline_with_enemy(player.rect, enemy.rect)
-					pyautogui.press(keyboard[astar_direction][int(isFirstPlayer)])
+					array[int(isFirstPlayer)]=astar_direction
 					if inline_direction:
-						pyautogui.press(keyboard[5][int(isFirstPlayer)])
+						array[int(isFirstPlayer)+1]=1
+					else:
+						array[int(isFirstPlayer)+1]=0
 			isFirstPlayer=not isFirstPlayer
+		with lock:
+			arr=array
 
 
 
@@ -335,22 +335,31 @@ class LoadGame(tanks.Game):
 
 
 
-
-
 	def run(self,auto,bothplayers):
 		if not auto:
 			self.showMenu()
 		else:
-			p2=Process(target=self.autoshowMenu(bothplayers))
-			p1.start()
-			p2.start()
-			p1.join()
-			p2.join()
+
+			self.showMenu1()
+			if bothplayers:
+				pyautogui.press("down")
+			pyautogui.press("enter")
+			self.showMenu2()
+		# v = mp.Value('i', 0)
+
+			arr = mp.Array('i', [0,0,0,0])
+			lock = mp.Lock()
+			q=mp.Queue()
+			process = mp.Process(target=self.nextLevel, args=(arr, lock))
+			process.start()
+			# self.nextLevel()
+			while True:
+				self.getAction(arr,lock)
+
 
 
 if __name__=='__main__':
 	autogame=LoadGame()
 	tanks.castle=tanks.Castle()
-	# autogame.showMenu()
-	# autogame.nextLevel()
-	autogame.run(auto=True,bothplayers=False)
+	autogame.run(auto=True,bothplayers=True)
+

@@ -1115,7 +1115,7 @@ class Enemy(Tank):
 		# if we can go anywhere else, turn around
 		if new_direction == None:
 			new_direction = opposite_direction
-			print "nav izejas. griezhamies"
+			# print "nav izejas. griezhamies"
 
 		# fix tanks position
 		if fix_direction and new_direction == self.direction:
@@ -1344,9 +1344,6 @@ class Game():
 
 		del players[:]
 		del bullets[:]
-
-
-
 		del enemies[:]
 		del bonuses[:]
 
@@ -1434,7 +1431,7 @@ class Game():
 
 		global play_sounds, sounds
 
-		print "Game Over"
+		print ("Game Over")
 		if play_sounds:
 			for sound in sounds:
 				sounds[sound].stop()
@@ -1490,8 +1487,6 @@ class Game():
 
 		self.animateIntroScreen()
 
-		# pyautogui.press('enter')
-
 		main_loop = True
 		while main_loop:
 			time_passed = self.clock.tick(50)
@@ -1515,6 +1510,54 @@ class Game():
 
 		del players[:]
 		self.nextLevel()
+
+	def showMenu1(self):
+		""" Show game menu
+		Redraw screen only when up or down key is pressed. When enter is pressed,
+		exit from this screen and start the game with selected number of players
+		"""
+		global players, screen
+
+		# stop game main loop (if any)
+		self.running = False
+
+		# clear all timers
+		del gtimer.timers[:]
+
+		# set current stage to 0
+		self.stage = 0
+
+		# self.stage = 34
+
+
+		self.animateIntroScreen()
+
+	def showMenu2(self):
+
+		global players, screen
+		main_loop = True
+		while main_loop:
+			time_passed = self.clock.tick(50)
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					quit()
+
+				elif event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_q:
+						quit()
+					elif event.key == pygame.K_UP:
+						if self.nr_of_players == 2:
+							self.nr_of_players = 1
+							self.drawIntroScreen()
+					elif event.key == pygame.K_DOWN:
+						if self.nr_of_players == 1:
+							self.nr_of_players = 2
+							self.drawIntroScreen()
+					elif event.key == pygame.K_RETURN:
+						main_loop = False
+
+		del players[:]
+		# self.nextLevel()
 
 	def reloadPlayers(self):
 		""" Init players
@@ -1919,7 +1962,7 @@ class Game():
 		if hiscore > 19999 and hiscore < 1000000:
 			return hiscore
 		else:
-			print "cheater =["
+			print("cheater =[")
 			return 20000
 
 	def saveHiscore(self, hiscore):
@@ -1929,7 +1972,7 @@ class Game():
 		try:
 			f = open(".hiscore", "w")
 		except:
-			print "Can't save hi-score"
+			print("Can't save hi-score")
 			return False
 		f.write(str(hiscore))
 		f.close()
@@ -1949,9 +1992,17 @@ class Game():
 		self.active = False
 		gtimer.add(3000, lambda :self.showScores(), 1)
 
-		print "Stage "+str(self.stage)+" completed"
+		print("Stage "+str(self.stage)+" completed")
 
-	def nextLevel(self):
+	def nextLevelNew(self, arr,lock):
+
+	#
+		self.nextLevel()
+
+
+	def nextLevel(self,arr,lock):
+	# def nextLevel(self):
+
 		""" Start next level """
 
 		global castle, players, bullets, bonuses, play_sounds, sounds
@@ -2010,6 +2061,31 @@ class Game():
 		while self.running:
 
 			time_passed = self.clock.tick(50)
+
+			with lock:
+				if arr[0] == 1:
+					pyautogui.press("up")
+				elif arr[0] == 2:
+					pyautogui.press("right")
+				elif arr[0] == 3:
+					pyautogui.press("down")
+				elif arr[0] == 4:
+					pyautogui.press("left")
+
+				if arr[1] == 1:
+					pyautogui.press("w")
+				elif arr[1] == 2:
+					pyautogui.press("d")
+				elif arr[1] == 3:
+					pyautogui.press("s")
+				elif arr[1] == 4:
+					pyautogui.press("a")
+
+				if arr[2] == 1:
+					pyautogui.press("enter")
+				if arr[3] == 1:
+					pyautogui.press("f")
+
 
 			for event in pygame.event.get():
 				if event.type == pygame.MOUSEBUTTONDOWN:
@@ -2075,6 +2151,7 @@ class Game():
 						player.move(self.DIR_LEFT);
 				player.update(time_passed)
 
+
 			for enemy in enemies:
 				if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:
 					enemies.remove(enemy)
@@ -2119,6 +2196,12 @@ class Game():
 
 			self.draw()
 
+			q.put([players,enemies,bullets,bonuses])
+			# d["players"]=players
+			# d["enemies"]=enemies
+			# d["bullets"]=bullets
+			# d["bonuses"]=bonuses
+
 
 gtimer = Timer()
 
@@ -2133,7 +2216,13 @@ labels = []
 play_sounds = True
 sounds = {}
 
+
+
+
+
 if __name__ == "__main__":
 	game = Game()
 	castle = Castle()
 	game.showMenu()
+
+
