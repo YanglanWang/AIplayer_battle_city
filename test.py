@@ -16,7 +16,7 @@ class LoadGame(tanks.Game):
 
 		isSecondPlayer=False
 		# keyboard={1:['up','w'],2:['right','d'],3:['down','s'],4:['left','a'],5:['enter','f']}
-		array=[0]*6
+		array=[0]*4
 
 		for player in d["players"]:
 
@@ -25,7 +25,7 @@ class LoadGame(tanks.Game):
 
 				cmd=self.getPath(d["players"][int(isSecondPlayer)][0],d["bonuses"][0], d, isSecondPlayer)
 
-				if not cmd:
+				if cmd:
 					array[int(isSecondPlayer)]=cmd
 			else:
 
@@ -43,8 +43,13 @@ class LoadGame(tanks.Game):
 					enemy=d["enemies"][min_index]
 
 					astar_direction = self.getPath(d["players"][int(isSecondPlayer)][0], enemy[0], d, isSecondPlayer)
+
+
+
+
 					inline_direction = self.inline_with_enemy(player[0], enemy[0])
-					array[int(isSecondPlayer)]=astar_direction
+					if astar_direction:
+						array[int(isSecondPlayer)]=astar_direction
 					if inline_direction:
 						array[int(isSecondPlayer)+1]=1
 					else:
@@ -114,8 +119,8 @@ class LoadGame(tanks.Game):
 					if point not in openSet:
 						openSet.append(point)
 
-		if len(path)>0:
-			next=path[0]
+		if len(path)>1:
+			next=path[1]
 			next_left, next_top = next
 			current_left, current_top = origin
 			dir_cmd=False
@@ -138,7 +143,7 @@ class LoadGame(tanks.Game):
 
 	def reconstructPath(self, cameFrom, current):
 		totalPath = [current]
-		while current in cameFrom.keys:
+		while current in cameFrom.keys():
 			current = cameFrom[current]
 			totalPath.insert(0, current)
 		return totalPath
@@ -147,7 +152,7 @@ class LoadGame(tanks.Game):
 
 		(TILE_EMPTY, TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE) = range(6)
 
-		top, left = current.topleft
+		left, top = current.topleft
 		# Rect(left, top, width, height)
 		allowable_move = []
 

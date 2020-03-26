@@ -2140,7 +2140,8 @@ class Game():
 			bulletsinfo = []
 			bonusesinfo = []
 			for player in players:
-				playersinfo.append([player.rect, player.direction, player.speed])
+				# playersinfo.append([player.rect, player.direction, player.speed])
+				playersinfo.append([player.rect, player.direction, 10])
 			d["players"] = playersinfo
 
 			for enemy in enemies:
