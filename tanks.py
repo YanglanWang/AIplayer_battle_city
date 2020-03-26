@@ -1994,9 +1994,12 @@ class Game():
 
 		print("Stage "+str(self.stage)+" completed")
 
-	def nextLevel2(self, arr,lock, d):
+	def nextLevel2(self, arr,lock, d, v):
 
 		global castle, players, bullets, bonuses, play_sounds, sounds
+		with lock:
+			if not self.running:
+				v.value=0
 
 		while self.running:
 
@@ -2004,27 +2007,28 @@ class Game():
 
 			with lock:
 				if arr[0] == 1:
-					pyautogui.press("up")
+					pyautogui.keyDown("up")
 				elif arr[0] == 2:
-					pyautogui.press("right")
+					pyautogui.keyDown("right")
 				elif arr[0] == 3:
-					pyautogui.press("down")
+					pyautogui.keyDown("down")
 				elif arr[0] == 4:
-					pyautogui.press("left")
+					pyautogui.keyDown("left")
 
 				if arr[1] == 1:
-					pyautogui.press("w")
+					pyautogui.keyDown("w")
 				elif arr[1] == 2:
-					pyautogui.press("d")
+					pyautogui.keyDown("d")
 				elif arr[1] == 3:
-					pyautogui.press("s")
+					pyautogui.keyDown("s")
 				elif arr[1] == 4:
-					pyautogui.press("a")
+					pyautogui.keyDown("a")
 
 				if arr[2] == 1:
-					pyautogui.press("enter")
+					pyautogui.keyDown("enter")
 				if arr[3] == 1:
-					pyautogui.press("f")
+					pyautogui.keyDown("f")
+
 
 			for event in pygame.event.get():
 				if event.type == pygame.MOUSEBUTTONDOWN:

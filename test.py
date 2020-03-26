@@ -43,47 +43,45 @@ class LoadGame(tanks.Game):
 					enemy=d["enemies"][min_index]
 
 					astar_direction = self.getPath(d["players"][int(isSecondPlayer)][0], enemy[0], d, isSecondPlayer)
-
-
-
-
 					inline_direction = self.inline_with_enemy(player[0], enemy[0])
-					if astar_direction:
-						array[int(isSecondPlayer)]=astar_direction
 					if inline_direction:
+						array[int(isSecondPlayer)]=inline_direction
 						array[int(isSecondPlayer)+1]=1
 					else:
-						array[int(isSecondPlayer)+1]=0
+						if astar_direction:
+							array[int(isSecondPlayer)] = astar_direction
+						array[int(isSecondPlayer) + 1] = 0
 			isSecondPlayer=not isSecondPlayer
 		with lock:
-			arr=array
+			for i in range(len(arr)):
+				arr[i]=array[i]
 
 
 
 
 	def inline_with_enemy(self, player_rect, enemy_rect):
 		# vertical inline
-		if enemy_rect.left <= player_rect.centerx <= enemy_rect.right and abs(
-				player_rect.top - enemy_rect.bottom) <= 151:
+		if enemy_rect.left <= player_rect.centerx <= enemy_rect.right:
+				# and abs(player_rect.top - enemy_rect.bottom) <= 151:
 			# enemy on top
 			if enemy_rect.bottom <= player_rect.top:
 				print('enemy on top')
-				return 0
+				return 1
 			# enemy on bottom
 			elif player_rect.bottom <= enemy_rect.top:
 				print('enemy on bottom')
-				return 2
+				return 3
 		# horizontal inline
-		if enemy_rect.top <= player_rect.centery <= enemy_rect.bottom and abs(
-				player_rect.left - enemy_rect.right) <= 151:
+		if enemy_rect.top <= player_rect.centery <= enemy_rect.bottom:
+				# and abs(player_rect.left - enemy_rect.right) <= 151:
 			# enemy on left
 			if enemy_rect.right <= player_rect.left:
 				print('enemy on left')
-				return 3
+				return 4
 			# enemy on right
 			elif player_rect.right <= enemy_rect.left:
 				print('enemy on right')
-				return 1
+				return 2
 		return False
 
 
@@ -122,7 +120,7 @@ class LoadGame(tanks.Game):
 		if len(path)>1:
 			next=path[1]
 			next_left, next_top = next
-			current_left, current_top = origin
+			current_left, current_top = origin_cor
 			dir_cmd=False
 
 			# up
@@ -344,19 +342,24 @@ class LoadGame(tanks.Game):
 				pyautogui.press("down")
 			pyautogui.press("enter")
 			self.showMenu2()
-		# v = mp.Value('i', 0)
-
+			v = mp.Value('i', 1)
 			arr = mp.Array('i', [0,0,0,0])
 			lock = mp.Lock()
 			# q=mp.Queue()
 			manager=mp.Manager()
 			d=manager.dict()
+			d["players"]=[]
+			d["enemies"]=[]
+			d["bonuses"]=[]
+			d["bullets"]=[]
 			self.nextLevel()
-			process = mp.Process(target=self.nextLevel2, args=(arr, lock,d))
+			process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
 			process.start()
 			# self.nextLevel()
 			while True:
-
+				with lock:
+					if v.value==0:
+						break
 				self.getAction(arr,lock,d)
 
 
