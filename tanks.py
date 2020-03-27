@@ -3,7 +3,7 @@
 
 import os, pygame, time, random, uuid, sys
 
-import pyautogui
+# import pyautogui
 
 
 class myRect(pygame.Rect):
@@ -1994,40 +1994,21 @@ class Game():
 
 		print("Stage "+str(self.stage)+" completed")
 
-	def nextLevel2(self, arr,lock, d, v):
+	# def nextLevel2(self, arr,lock, d, v):
+	def nextLevel2(self, control, d, v):
 
 		global castle, players, bullets, bonuses, play_sounds, sounds
-		with lock:
-			if not self.running:
-				v.value=0
+		# with lock:
+		if not self.running:
+			v.value=0
+
 
 		while self.running:
 
 			time_passed = self.clock.tick(50)
+			if control.empty()!=True:
+				operations=control.get(False)
 
-			with lock:
-				if arr[0] == 1:
-					pyautogui.keyDown("up")
-				elif arr[0] == 2:
-					pyautogui.keyDown("right")
-				elif arr[0] == 3:
-					pyautogui.keyDown("down")
-				elif arr[0] == 4:
-					pyautogui.keyDown("left")
-
-				if arr[1] == 1:
-					pyautogui.keyDown("w")
-				elif arr[1] == 2:
-					pyautogui.keyDown("d")
-				elif arr[1] == 3:
-					pyautogui.keyDown("s")
-				elif arr[1] == 4:
-					pyautogui.keyDown("a")
-
-				if arr[2] == 1:
-					pyautogui.keyDown("enter")
-				if arr[3] == 1:
-					pyautogui.keyDown("f")
 
 
 			for event in pygame.event.get():
@@ -2084,15 +2065,22 @@ class Game():
 
 			for player in players:
 				if player.state == player.STATE_ALIVE and not self.game_over and self.active:
-					if player.pressed[0] == True:
-						player.move(self.DIR_UP);
-					elif player.pressed[1] == True:
-						player.move(self.DIR_RIGHT);
-					elif player.pressed[2] == True:
-						player.move(self.DIR_DOWN);
-					elif player.pressed[3] == True:
-						player.move(self.DIR_LEFT);
+					if operations[0]==1:
+						if players[0].fire() and play_sounds:
+							sounds["fire"].play()
+					if operations[1]<4:
+						players[0].pressed[operations[1]] = True
+						if player.pressed[0] == True:
+							player.move(self.DIR_UP)
+						elif player.pressed[1] == True:
+							player.move(self.DIR_RIGHT)
+						elif player.pressed[2] == True:
+							player.move(self.DIR_DOWN)
+						elif player.pressed[3] == True:
+							player.move(self.DIR_LEFT)
 				player.update(time_passed)
+				if operations[1]<4:
+					player.pressed[operations[1]] = False
 
 			for enemy in enemies:
 				if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:

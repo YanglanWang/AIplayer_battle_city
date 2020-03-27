@@ -1,5 +1,5 @@
 import pyautogui
-import  math, heapq, tanks, pygame
+import  math, heapq, tanks, pygame, time
 import multiprocessing as mp
 from multiprocessing import Manager
 # pyautogui.press('enter')
@@ -10,7 +10,9 @@ class LoadGame(tanks.Game):
 
 
 
-	def getAction(self,arr,lock,d):
+	# def getAction(self,arr,lock,d):
+	def getAction(self,control, d):
+
 	# def getAction(self):
 	# 	info=q.get()
 
@@ -52,9 +54,9 @@ class LoadGame(tanks.Game):
 							array[int(isSecondPlayer)] = astar_direction
 						array[int(isSecondPlayer) + 1] = 0
 			isSecondPlayer=not isSecondPlayer
-		with lock:
-			for i in range(len(arr)):
-				arr[i]=array[i]
+		# with lock:
+		for i in range(len(arr)):
+			arr[i]=array[i]
 
 
 
@@ -339,12 +341,17 @@ class LoadGame(tanks.Game):
 
 			self.showMenu1()
 			if bothplayers:
-				pyautogui.press("down")
-			pyautogui.press("enter")
-			self.showMenu2()
+				self.nr_of_players=2
+			while True:
+				self.drawIntroScreen()
+				time.sleep(0.7)
+				break
+			# pyautogui.press("enter")
+			# self.showMenu2()
 			v = mp.Value('i', 1)
-			arr = mp.Array('i', [0,0,0,0])
-			lock = mp.Lock()
+			# arr = mp.Array('i', [0,0,0,0])
+			control = mp.Queue()
+			# lock = mp.Lock()
 			# q=mp.Queue()
 			manager=mp.Manager()
 			d=manager.dict()
@@ -353,19 +360,21 @@ class LoadGame(tanks.Game):
 			d["bonuses"]=[]
 			d["bullets"]=[]
 			self.nextLevel()
-			process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
+			# process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
+			process = mp.Process(target=self.nextLevel2, args=(control,d,v))
 			process.start()
 			# self.nextLevel()
 			while True:
-				with lock:
-					if v.value==0:
-						break
-				self.getAction(arr,lock,d)
+				# with lock:
+				if v.value==0:
+					break
+				# self.getAction(arr,lock,d)
+				self.getAction(control, d,v)
 
 
 
 if __name__=='__main__':
 	autogame=LoadGame()
 	tanks.castle=tanks.Castle()
-	autogame.run(auto=True,bothplayers=True)
+	autogame.run(auto=True,bothplayers=False)
 
