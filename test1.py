@@ -121,7 +121,7 @@ class LoadGame(tanks.Game):
 				if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height or self.encoded_map[current_top][current_left] == "t"):
 					break
 				if (self.encoded_map[current_top][current_left] == "e"):
-					print("the position of origin (%s, %s )") % (encoded_player_top, encoded_player_left)
+					print("the position of origin (%s, %s ) (%s, %s )") % (encoded_player_top, encoded_player_left, player[0].top, player[0].left)
 					print("the position of enemy (%s, %s)") % (current_top, current_left)
 					return i
 
@@ -161,7 +161,7 @@ class LoadGame(tanks.Game):
 			visited[current_top][current_left] = True
 
 			if (self.encoded_map[current_top][current_left] == "e"):
-				print("the position of origin (%s, %s )")%(player_top,player_left)
+				print("the position of origin (%s, %s ) (%s, %s)")%(player_top,player_left, player[0].top, player[0].left)
 				print("the position of enemy (%s, %s)")%(current_top, current_left)
 				print "found enemy in "+ str(direction)
 
@@ -200,17 +200,36 @@ class LoadGame(tanks.Game):
 			adjust_left = player[0].left//32 * 32
 
 			# 1. check if the position of player's tank is on the multiplier of 32
-			if (player[1] == 1 or player[1] == 3):
-				if (player[0].top - adjust_top > 5):
-					# print "adjust left"
-					self.UpdateStrategy(control, 0, 0)
+			# if (player[1] == 1 or player[1] == 3):
+			# 	if (player[0].top - adjust_top > 5):
+			# 		# print "adjust left"
+			# 		self.UpdateStrategy(control, 0, 0)
+			# 		continue
+			#
+			# elif (player[1] == 0 or player[1] == 2):
+			# 	if (player[0].left - adjust_left > 5):
+			# 		# print "adjust left"
+			# 		self.UpdateStrategy(control, 3, 0)
+			# 		continue
+
+			if player[1]==0:
+				if player[0].top%UNIT_LENGTH>3 and player[0].top%UNIT_LENGTH<UNIT_LENGTH-3:
+					print("player position: (%s, %s, %s, %s)"%(player[0].top, player[0].left, player[0].bottom, player[0].right))
+					self.UpdateStrategy(control,0,0)
+					continue
+			if player[1]==2:
+				if player[0].top%UNIT_LENGTH>0 and player[0].top%UNIT_LENGTH<UNIT_LENGTH:
+					self.UpdateStrategy(control,2,0)
+					continue
+			if player[1]==1:
+				if player[0].left%UNIT_LENGTH>0 and player[0].left%UNIT_LENGTH<UNIT_LENGTH:
+					self.UpdateStrategy(control,1,0)
+					continue
+			if player[1]==3:
+				if player[0].left%UNIT_LENGTH>0 and player[0].left%UNIT_LENGTH<UNIT_LENGTH:
+					self.UpdateStrategy(control,3,0)
 					continue
 
-			elif (player[1] == 0 or player[1] == 2):
-				if (player[0].left - adjust_left > 5):
-					# print "adjust left"
-					self.UpdateStrategy(control, 3, 0)
-					continue
 
 			# 2. check nearest 5 blocks in every direction ( bullet, tank )
 			# check for bullets
@@ -236,9 +255,10 @@ class LoadGame(tanks.Game):
 			direction = self.bfs(player)
 			if (direction == -1):
 				# move = random.randint(0,4)
-				# print("no movement")
+				print("no movement")
 				self.UpdateStrategy(control,4, 0)
 			else:
+				print("movement direction: "+str(direction))
 				# print("trace tank")
 				self.UpdateStrategy(control, direction, 0)
 

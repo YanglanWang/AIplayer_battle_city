@@ -2152,6 +2152,8 @@ class Game():
 
 			self.draw()
 
+			operations = [4, 0]
+
 			# d["players"]=[[1,2],[3,4]]
 			if d!=None:
 				playersinfo = []
