@@ -2106,6 +2106,7 @@ class Game():
 				player.update(time_passed)
 				if control!=None and operations[0]<4:
 					player.pressed[operations[0]] = False
+					print("press false")
 
 			for enemy in enemies:
 				if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:

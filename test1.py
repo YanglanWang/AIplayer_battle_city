@@ -55,17 +55,16 @@ class LoadGame(tanks.Game):
 		range = 100
 		player_top=player[0].top
 		player_left=player[0].left
+		player_bottom=player_top+player[0].height
+		player_right=player_left+player[0].width
 		for bullet in bullets:
 			bullet_top = bullet[0].top
 			bullet_left = bullet[0].left
 			bullet_bottom = bullet_top + bullet[0].height
 			bullet_right = bullet_left + bullet[0].width
-			# bullet_h_mid = (bullet_top + bullet_bottom) / 2
-			# bullet_v_mid = (bullet_left + bullet_right) / 2
 			bullet_dir = bullet[1]
-			# top part of player tank
-			if (bullet_bottom > player_top and bullet_bottom <= player_top + 10):
-					# or (bullet_h_mid > player_top and bullet_h_mid <= player_top + 10)):
+			# bullet is below the player
+			if (bullet_top-player_bottom> 0 and bullet_top-player_bottom<= 10):
 				if ((player_left < bullet_left and player_left + range > bullet_left and bullet_dir == 3) or (player_left > bullet_left and player_left - range < bullet_left and  bullet_dir == 1)):
 					return 2
 			# bottom part of player tank
@@ -111,23 +110,26 @@ class LoadGame(tanks.Game):
 		return -1
 
 	def check_tanks(self, player):
-		encoded_player_left=player[0].left//32
-		encoded_player_top=player[0].top//32
+		encoded_player_left=player[0].left//UNIT_LENGTH
+		encoded_player_top=player[0].top//UNIT_LENGTH
 		for i in range(4):
 			current_left = encoded_player_left
 			current_top = encoded_player_top
-			for j in range(5):
+			for j in range(13):
 				current_left = current_left + self.dir_left[i]
 				current_top = current_top + self.dir_top[i]
 				if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height or self.encoded_map[current_top][current_left] == "t"):
 					break
 				if (self.encoded_map[current_top][current_left] == "e"):
+					print("the position of origin (%s, %s )") % (encoded_player_top, encoded_player_left)
+					print("the position of enemy (%s, %s)") % (current_top, current_left)
 					return i
 
 		return -1
 
 
 	def bfs(self, player):
+		print("run bfs")
 		q = Queue.Queue()
 
 		player_left = player[0].left//UNIT_LENGTH
@@ -159,7 +161,10 @@ class LoadGame(tanks.Game):
 			visited[current_top][current_left] = True
 
 			if (self.encoded_map[current_top][current_left] == "e"):
-				print "found enemy"
+				print("the position of origin (%s, %s )")%(player_top,player_left)
+				print("the position of enemy (%s, %s)")%(current_top, current_left)
+				print "found enemy in "+ str(direction)
+
 				result_move = direction
 				return result_move
 
@@ -181,7 +186,8 @@ class LoadGame(tanks.Game):
 		# array=[0]*4
 		self.encoded_map=self.encodeMap(d)
 
-		for player in d["players"]:
+		for i_th in range(len(d["players"])):
+			player=d["players"][i_th]
 
 			if len(d["bullets"])!=0:
 				direction=self.dodge_bullets(player)
@@ -217,21 +223,23 @@ class LoadGame(tanks.Game):
 
 
 			# check for tanks
-			direction = self.check_tanks(player)
-			if (direction != -1):
-				print "Found Tank, direction %s"%direction
-				self.UpdateStrategy(control, direction, 1)
-				continue
+			if len(d["enemies"])!=0:
+				direction = self.check_tanks(player)
+				if (direction != -1):
+					print "Found Tank, direction %s, fire"%direction
+					self.UpdateStrategy(control, direction, 1)
+					continue
 
 			# 3. BFS
 			self.generate_dangerous_map(d["bullets"], d["enemies"])
+			print("player "+str(i_th) +":")
 			direction = self.bfs(player)
 			if (direction == -1):
 				# move = random.randint(0,4)
 				# print("no movement")
 				self.UpdateStrategy(control,4, 0)
 			else:
-				print("trace tank")
+				# print("trace tank")
 				self.UpdateStrategy(control, direction, 0)
 
 
@@ -325,6 +333,7 @@ class LoadGame(tanks.Game):
 				process.start()
 				# self.nextLevel()
 				while True:
+					time_passed = self.clock.tick(100)
 					# with lock:
 					if v.value==0:
 						# self.kill_ai_process(process)
