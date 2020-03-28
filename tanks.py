@@ -1466,7 +1466,7 @@ class Game():
 						self.showMenu()
 						return
 
-	def showMenu(self):
+	def showMenu(self, auto, bothplayers):
 		""" Show game menu
 		Redraw screen only when up or down key is pressed. When enter is pressed,
 		exit from this screen and start the game with selected number of players
@@ -1487,77 +1487,36 @@ class Game():
 
 		self.animateIntroScreen()
 
-		main_loop = True
-		while main_loop:
-			time_passed = self.clock.tick(50)
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-					quit()
-
-				elif event.type == pygame.KEYDOWN:
-					if event.key == pygame.K_q:
+		if not auto:
+			main_loop = True
+			while main_loop:
+				time_passed = self.clock.tick(50)
+				for event in pygame.event.get():
+					if event.type == pygame.QUIT:
 						quit()
-					elif event.key == pygame.K_UP:
-						if self.nr_of_players == 2:
-							self.nr_of_players = 1
-							self.drawIntroScreen()
-					elif event.key == pygame.K_DOWN:
-						if self.nr_of_players == 1:
-							self.nr_of_players = 2
-							self.drawIntroScreen()
-					elif event.key == pygame.K_RETURN:
-						main_loop = False
 
-		del players[:]
-		self.nextLevel()
+					elif event.type == pygame.KEYDOWN:
+						if event.key == pygame.K_q:
+							quit()
+						elif event.key == pygame.K_UP:
+							if self.nr_of_players == 2:
+								self.nr_of_players = 1
+								self.drawIntroScreen()
+						elif event.key == pygame.K_DOWN:
+							if self.nr_of_players == 1:
+								self.nr_of_players = 2
+								self.drawIntroScreen()
+						elif event.key == pygame.K_RETURN:
+							main_loop = False
 
-	def showMenu1(self):
-		""" Show game menu
-		Redraw screen only when up or down key is pressed. When enter is pressed,
-		exit from this screen and start the game with selected number of players
-		"""
-		global players, screen
-
-		# stop game main loop (if any)
-		self.running = False
-
-		# clear all timers
-		del gtimer.timers[:]
-
-		# set current stage to 0
-		self.stage = 0
-
-		# self.stage = 34
-
-
-		self.animateIntroScreen()
-
-	def showMenu2(self):
-
-		global players, screen
-		main_loop = True
-		while main_loop:
-			time_passed = self.clock.tick(50)
-			for event in pygame.event.get():
-				if event.type == pygame.QUIT:
-					quit()
-
-				elif event.type == pygame.KEYDOWN:
-					if event.key == pygame.K_q:
-						quit()
-					elif event.key == pygame.K_UP:
-						if self.nr_of_players == 2:
-							self.nr_of_players = 1
-							self.drawIntroScreen()
-					elif event.key == pygame.K_DOWN:
-						if self.nr_of_players == 1:
-							self.nr_of_players = 2
-							self.drawIntroScreen()
-					elif event.key == pygame.K_RETURN:
-						main_loop = False
-
-		del players[:]
-		# self.nextLevel()
+			del players[:]
+		else:
+			if bothplayers:
+				self.nr_of_players=2
+			while True:
+				self.drawIntroScreen()
+				time.sleep(0.7)
+				break
 
 	def reloadPlayers(self):
 		""" Init players
@@ -1994,171 +1953,10 @@ class Game():
 
 		print("Stage "+str(self.stage)+" completed")
 
-	# def nextLevel2(self, arr,lock, d, v):
-	def nextLevel2(self, control, d, v):
-
-		global castle, players, bullets, bonuses, play_sounds, sounds
-		# with lock:
-		if not self.running:
-			v.value=0
-
-
-		while self.running:
-
-			time_passed = self.clock.tick(50)
-			if control.empty()!=True:
-				operations=control.get(False)
 
 
 
-			for event in pygame.event.get():
-				if event.type == pygame.MOUSEBUTTONDOWN:
-					pass
-				elif event.type == pygame.QUIT:
-					quit()
-				elif event.type == pygame.KEYDOWN and not self.game_over and self.active:
-
-					if event.key == pygame.K_q:
-						quit()
-					# toggle sounds
-					elif event.key == pygame.K_m:
-						play_sounds = not play_sounds
-						if not play_sounds:
-							pygame.mixer.stop()
-						else:
-							sounds["bg"].play(-1)
-
-					for player in players:
-						if player.state == player.STATE_ALIVE:
-							try:
-								index = player.controls.index(event.key)
-							except:
-								pass
-							else:
-								if index == 0:
-									if player.fire() and play_sounds:
-										sounds["fire"].play()
-								elif index == 1:
-									player.pressed[0] = True
-								elif index == 2:
-									player.pressed[1] = True
-								elif index == 3:
-									player.pressed[2] = True
-								elif index == 4:
-									player.pressed[3] = True
-				elif event.type == pygame.KEYUP and not self.game_over and self.active:
-					for player in players:
-						if player.state == player.STATE_ALIVE:
-							try:
-								index = player.controls.index(event.key)
-							except:
-								pass
-							else:
-								if index == 1:
-									player.pressed[0] = False
-								elif index == 2:
-									player.pressed[1] = False
-								elif index == 3:
-									player.pressed[2] = False
-								elif index == 4:
-									player.pressed[3] = False
-
-			for player in players:
-				if player.state == player.STATE_ALIVE and not self.game_over and self.active:
-					if operations[0]==1:
-						if players[0].fire() and play_sounds:
-							sounds["fire"].play()
-					if operations[1]<4:
-						players[0].pressed[operations[1]] = True
-						if player.pressed[0] == True:
-							player.move(self.DIR_UP)
-						elif player.pressed[1] == True:
-							player.move(self.DIR_RIGHT)
-						elif player.pressed[2] == True:
-							player.move(self.DIR_DOWN)
-						elif player.pressed[3] == True:
-							player.move(self.DIR_LEFT)
-				player.update(time_passed)
-				if operations[1]<4:
-					player.pressed[operations[1]] = False
-
-			for enemy in enemies:
-				if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:
-					enemies.remove(enemy)
-					if len(self.level.enemies_left) == 0 and len(enemies) == 0:
-						self.finishLevel()
-				else:
-					enemy.update(time_passed)
-
-			if not self.game_over and self.active:
-				for player in players:
-					if player.state == player.STATE_ALIVE:
-						if player.bonus != None and player.side == player.SIDE_PLAYER:
-							self.triggerBonus(bonus, player)
-							player.bonus = None
-					elif player.state == player.STATE_DEAD:
-						self.superpowers = 0
-						player.lives -= 1
-						if player.lives > 0:
-							self.respawnPlayer(player)
-						else:
-							self.gameOver()
-
-			for bullet in bullets:
-				if bullet.state == bullet.STATE_REMOVED:
-					bullets.remove(bullet)
-				else:
-					bullet.update()
-
-			for bonus in bonuses:
-				if bonus.active == False:
-					bonuses.remove(bonus)
-
-			for label in labels:
-				if not label.active:
-					labels.remove(label)
-
-			if not self.game_over:
-				if not castle.active:
-					self.gameOver()
-
-			gtimer.update(time_passed)
-
-			self.draw()
-
-			# d["players"]=[[1,2],[3,4]]
-			playersinfo = []
-			enemiesinfo = []
-			bulletsinfo = []
-			bonusesinfo = []
-			for player in players:
-				# playersinfo.append([player.rect, player.direction, player.speed])
-				playersinfo.append([player.rect, player.direction, 10])
-			d["players"] = playersinfo
-
-			for enemy in enemies:
-				enemiesinfo.append([enemy.rect, enemy.direction, enemy.speed])
-			d["enemies"] = enemiesinfo
-
-			for bullet in bullets:
-				bulletsinfo.append([bullet.rect, bullet.direction, bullet.speed])
-			d["bullets"] = bulletsinfo
-
-			for bonus in bonuses:
-				bonusesinfo.append([bonus.rect])
-			d["bonuses"] = bonusesinfo
-		# d["tiles"]=self.level.mapr
-
-		# q.put([players,enemies,bullets,bonuses])
-		# d["players"]=players
-		# d["enemies"]=enemies
-		# d["bullets"]=bullets
-		# d["bonuses"]=bonuses
-	#
-		self.nextLevel()
-
-
-	def nextLevel(self):
+	def nextLevel1(self):
 
 		""" Start next level """
 
@@ -2215,6 +2013,166 @@ class Game():
 
 		# pyautogui.keyDown('up')
 
+	def nextLevel2(self, control, d, v):
+
+		global play_sounds
+		if v!=None and (not self.running):
+			v.value=0
+		if control!=None and v!=None and d!=None:
+			operations = [4,0]
+
+		while self.running:
+
+			time_passed = self.clock.tick(50)
+			if control!=None and control.empty()!=True:
+				operations=control.get(False)
+
+
+
+			for event in pygame.event.get():
+				if event.type == pygame.MOUSEBUTTONDOWN:
+					pass
+				elif event.type == pygame.QUIT:
+					quit()
+				elif event.type == pygame.KEYDOWN and not self.game_over and self.active:
+
+					if event.key == pygame.K_q:
+						quit()
+					# toggle sounds
+					elif event.key == pygame.K_m:
+						play_sounds = not play_sounds
+						if not play_sounds:
+							pygame.mixer.stop()
+						else:
+							sounds["bg"].play(-1)
+
+					for player in players:
+						if player.state == player.STATE_ALIVE:
+							try:
+								index = player.controls.index(event.key)
+							except:
+								pass
+							else:
+								if index == 0:
+									if player.fire() and play_sounds:
+										sounds["fire"].play()
+								elif index == 1:
+									player.pressed[0] = True
+								elif index == 2:
+									player.pressed[1] = True
+								elif index == 3:
+									player.pressed[2] = True
+								elif index == 4:
+									player.pressed[3] = True
+				elif event.type == pygame.KEYUP and not self.game_over and self.active:
+					for player in players:
+						if player.state == player.STATE_ALIVE:
+							try:
+								index = player.controls.index(event.key)
+							except:
+								pass
+							else:
+								if index == 1:
+									player.pressed[0] = False
+								elif index == 2:
+									player.pressed[1] = False
+								elif index == 3:
+									player.pressed[2] = False
+								elif index == 4:
+									player.pressed[3] = False
+
+
+			for player in players:
+				if player.state == player.STATE_ALIVE and not self.game_over and self.active:
+					if control!=None:
+						if operations[1]==1:
+							if players[0].fire() and play_sounds:
+								sounds["fire"].play()
+								print("fire")
+						if operations[0]<4:
+							players[0].pressed[operations[0]] = True
+					if player.pressed[0] == True:
+						player.move(self.DIR_UP)
+						print("move up")
+					elif player.pressed[1] == True:
+						player.move(self.DIR_RIGHT)
+						print("move right")
+					elif player.pressed[2] == True:
+						player.move(self.DIR_DOWN)
+						print("move down")
+					elif player.pressed[3] == True:
+						player.move(self.DIR_LEFT)
+						print("move left")
+				player.update(time_passed)
+				if control!=None and operations[0]<4:
+					player.pressed[operations[0]] = False
+
+			for enemy in enemies:
+				if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:
+					enemies.remove(enemy)
+					if len(self.level.enemies_left) == 0 and len(enemies) == 0:
+						self.finishLevel()
+				else:
+					enemy.update(time_passed)
+
+			if not self.game_over and self.active:
+				for player in players:
+					if player.state == player.STATE_ALIVE:
+						if player.bonus != None and player.side == player.SIDE_PLAYER:
+							self.triggerBonus(bonus, player)
+							player.bonus = None
+					elif player.state == player.STATE_DEAD:
+						self.superpowers = 0
+						player.lives -= 1
+						if player.lives > 0:
+							self.respawnPlayer(player)
+						else:
+							self.gameOver()
+
+			for bullet in bullets:
+				if bullet.state == bullet.STATE_REMOVED:
+					bullets.remove(bullet)
+				else:
+					bullet.update()
+
+			for bonus in bonuses:
+				if bonus.active == False:
+					bonuses.remove(bonus)
+
+			for label in labels:
+				if not label.active:
+					labels.remove(label)
+
+			if not self.game_over:
+				if not castle.active:
+					self.gameOver()
+
+			gtimer.update(time_passed)
+
+			self.draw()
+
+			# d["players"]=[[1,2],[3,4]]
+			if d!=None:
+				playersinfo = []
+				enemiesinfo = []
+				bulletsinfo = []
+				bonusesinfo = []
+				for player in players:
+					# playersinfo.append([player.rect, player.direction, player.speed])
+					playersinfo.append([player.rect, player.direction, player.speed])
+				d["players"] = playersinfo
+
+				for enemy in enemies:
+					enemiesinfo.append([enemy.rect, enemy.direction])
+				d["enemies"] = enemiesinfo
+
+				for bullet in bullets:
+					bulletsinfo.append([bullet.rect, bullet.direction])
+				d["bullets"] = bulletsinfo
+
+				for bonus in bonuses:
+					bonusesinfo.append([bonus.rect])
+				d["bonuses"] = bonusesinfo
 
 
 
