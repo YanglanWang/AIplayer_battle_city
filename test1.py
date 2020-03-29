@@ -513,38 +513,47 @@ class LoadGame(tanks.Game):
 		return allowable_move
 
 	def run(self,auto,bothplayers):
-		self.showMenu(auto, bothplayers)
 
 		# pyautogui.press("enter")
 		# arr = mp.Array('i', [0,0,0,0])
 		# lock = mp.Lock()
 		# q=mp.Queue()
 		if not auto:
-			self.nextLevel1()
-			self.nextLevel2(None,None,None)
+			self.showMenu(bothplayers, auto)
+			while not self.game_over:
+				self.nextLevel1()
+				self.nextLevel2(None,None,None)
 		else:
+			self.showMenu(bothplayers, auto)
 			while True:
 				self.nextLevel1()
-				control = mp.Queue()
-				manager=mp.Manager()
-				d=manager.dict()
-				d["players"]=[]
-				d["enemies"]=[]
-				d["bonuses"]=[]
-				d["bullets"]=[]
-				v = mp.Value('i', 1)
-				# process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
-				process = mp.Process(target=self.nextLevel2, args=(control,d,v))
-				process.start()
-				# self.nextLevel()
-				while True:
-					time_passed = self.clock.tick(100)
-					# with lock:
-					if v.value==0:
-						# self.kill_ai_process(process)
-						break
-					# self.getAction(arr,lock,d)
-					self.getAction(control, d,v)
+
+				while self.active==False:
+					print("stage %s begin: "%self.stage)
+					control = mp.Queue()
+					manager=mp.Manager()
+					d=manager.dict()
+					d["players"]=[]
+					d["enemies"]=[]
+					d["bonuses"]=[]
+					d["bullets"]=[]
+					v = mp.Value('i', 1)
+					# process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
+					process = mp.Process(target=self.nextLevel2, args=(control,d,v))
+					process.start()
+					# self.nextLevel()
+					while True:
+						time_passed = self.clock.tick(100)
+						# with lock:
+						if v.value==0:
+							# self.kill_ai_process(process)
+							break
+						# self.getAction(arr,lock,d)
+						self.getAction(control, d,v)
+				if self.stage>=35:
+					print("whole stages completed")
+					break
+
 
 	def kill_ai_process(self,p):
 		#p.terminate()

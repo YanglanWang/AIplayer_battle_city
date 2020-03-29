@@ -482,7 +482,7 @@ class LoadGame(tanks.Game):
 
 
 	def run(self,auto,bothplayers):
-		self.showMenu(auto, bothplayers)
+		self.showMenu(bothplayers, auto)
 
 		# pyautogui.press("enter")
 		# arr = mp.Array('i', [0,0,0,0])

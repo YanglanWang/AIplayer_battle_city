@@ -1462,11 +1462,13 @@ class Game():
 				if event.type == pygame.QUIT:
 					quit()
 				elif event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_q:
+						quit()
 					if event.key == pygame.K_RETURN:
-						self.showMenu()
+						self.showMenu(None,False)
 						return
 
-	def showMenu(self, auto, bothplayers):
+	def showMenu(self, bothplayers, auto=False ):
 		""" Show game menu
 		Redraw screen only when up or down key is pressed. When enter is pressed,
 		exit from this screen and start the game with selected number of players
@@ -1510,6 +1512,9 @@ class Game():
 							main_loop = False
 
 			del players[:]
+			self.nextLevel1()
+			self.nextLevel2(None,None,None)
+
 		else:
 			if bothplayers:
 				self.nr_of_players=2
@@ -1684,8 +1689,8 @@ class Game():
 
 		if self.game_over:
 			self.gameOverScreen()
-		else:
-			self.nextLevel()
+		# else:
+			# self.nextLevel()
 
 
 	def draw(self):
@@ -2000,13 +2005,13 @@ class Game():
 
 		gtimer.add(3000, lambda :self.spawnEnemy())
 
-		# if True, start "game over" animation
+		# if True, start "game over" animation, fail
 		self.game_over = False
 
 		# if False, game will end w/o "game over" bussiness
 		self.running = True
 
-		# if False, players won't be able to do anything
+		# if False, players won't be able to do anything, neither fail or win
 		self.active = True
 
 		self.draw()
@@ -2023,7 +2028,7 @@ class Game():
 
 		while self.running:
 
-			time_passed = self.clock.tick(500)
+			time_passed = self.clock.tick(50)
 			if control!=None and control.empty()!=True:
 				operations=control.get(False)
 
