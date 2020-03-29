@@ -2023,7 +2023,7 @@ class Game():
 
 		while self.running:
 
-			time_passed = self.clock.tick(50)
+			time_passed = self.clock.tick(500)
 			if control!=None and control.empty()!=True:
 				operations=control.get(False)
 
