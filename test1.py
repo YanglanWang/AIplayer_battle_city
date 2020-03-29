@@ -50,6 +50,16 @@ class LoadGame(tanks.Game):
 				result[t_top][t_left]="t"
 		return result
 
+	def enemeyDirection(self):
+		result = [[10 for x in range(self.map_width)] for y in range(self.map_height)]
+		for enemy in self.d["enemies"]:
+			e_left=enemy[0].left//UNIT_LENGTH
+			e_top=enemy[0].top//UNIT_LENGTH
+			result[e_top][e_left]=enemy[1]
+		return result
+
+
+
 	def dodge_bullets(self, player):
 		bullets=self.d["bullets"]
 		range = 100
@@ -129,7 +139,11 @@ class LoadGame(tanks.Game):
 				if (self.encoded_map[current_top][current_left] == "e"):
 					print("the position of origin (%s, %s ) (%s, %s )") % (encoded_player_top, encoded_player_left, player[0].top, player[0].left)
 					print("the position of enemy (%s, %s)") % (current_top, current_left)
-					return i
+					if abs(self.enemy_direction[current_top][current_left]-i)==2:
+						return -1
+					else:
+						return i
+
 
 		return -1
 
@@ -198,6 +212,8 @@ class LoadGame(tanks.Game):
 		isSecondPlayer=False
 		# array=[0]*4
 		self.encoded_map=self.encodeMap()
+		self.enemy_direction=self.enemeyDirection()
+
 
 		for i_th in range(len(d["players"])):
 			player=d["players"][i_th]
@@ -223,6 +239,7 @@ class LoadGame(tanks.Game):
 			# 		continue
 			# 2. check nearest 5 blocks in every direction ( bullet, tank )
 			# check for bullets
+
 
 			if len(d["bullets"]) != 0:
 				direction = self.check_bullets(player)
@@ -257,6 +274,7 @@ class LoadGame(tanks.Game):
 					print "Found Tank, direction %s, fire" % direction
 					self.UpdateStrategy(control, direction, 1)
 					continue
+
 
 			# ensure the safety of castle
 			if len(d["enemies"])!=0:
@@ -472,7 +490,7 @@ class LoadGame(tanks.Game):
 		# move down
 		new_top=current_top+1
 		new_left=current_left
-		if new_top<self.map_height or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
+		if new_top>=self.map_height or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
 			pass
 		else:
 			allowable_move.append((new_top,new_left))
@@ -480,7 +498,7 @@ class LoadGame(tanks.Game):
 		# move left
 		new_top=current_top
 		new_left=current_left-1
-		if new_left>0 or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
+		if new_left<0 or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
 			pass
 		else:
 			allowable_move.append((new_top,new_left))
@@ -488,7 +506,7 @@ class LoadGame(tanks.Game):
 		# move right
 		new_top=current_top
 		new_left=current_left+1
-		if new_left<self.map_width or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
+		if new_left>=self.map_width or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
 			pass
 		else:
 			allowable_move.append((new_top,new_left))
