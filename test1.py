@@ -518,17 +518,19 @@ class LoadGame(tanks.Game):
 		# arr = mp.Array('i', [0,0,0,0])
 		# lock = mp.Lock()
 		# q=mp.Queue()
+
 		if not auto:
 			self.showMenu(bothplayers, auto)
 			while not self.game_over:
 				self.nextLevel1()
-				self.nextLevel2(None,None,None)
+				self.nextLevel2(None,None,None,auto)
 		else:
 			self.showMenu(bothplayers, auto)
 			while True:
 				self.nextLevel1()
+				notstart=True
 
-				while self.active==False:
+				while notstart or self.game_over:
 					print("stage %s begin: "%self.stage)
 					control = mp.Queue()
 					manager=mp.Manager()
@@ -539,7 +541,7 @@ class LoadGame(tanks.Game):
 					d["bullets"]=[]
 					v = mp.Value('i', 1)
 					# process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
-					process = mp.Process(target=self.nextLevel2, args=(control,d,v))
+					process = mp.Process(target=self.nextLevel2, args=(control,d,v,auto))
 					process.start()
 					# self.nextLevel()
 					while True:
@@ -550,6 +552,7 @@ class LoadGame(tanks.Game):
 							break
 						# self.getAction(arr,lock,d)
 						self.getAction(control, d,v)
+					notstart=False
 				if self.stage>=35:
 					print("whole stages completed")
 					break

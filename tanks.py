@@ -1426,7 +1426,7 @@ class Game():
 
 		self.shieldPlayer(player, True, 4000)
 
-	def gameOver(self):
+	def gameOver(self, auto):
 		""" End game and return to menu """
 
 		global play_sounds, sounds
@@ -1440,7 +1440,7 @@ class Game():
 		self.game_over_y = 416+40
 
 		self.game_over = True
-		gtimer.add(3000, lambda :self.showScores(), 1)
+		gtimer.add(3000, lambda :self.showScores(auto), 1)
 
 	def gameOverScreen(self):
 		""" Show game over screen """
@@ -1468,7 +1468,7 @@ class Game():
 						self.showMenu(None,False)
 						return
 
-	def showMenu(self, bothplayers, auto=False ):
+	def showMenu(self, bothplayers, auto):
 		""" Show game menu
 		Redraw screen only when up or down key is pressed. When enter is pressed,
 		exit from this screen and start the game with selected number of players
@@ -1555,7 +1555,7 @@ class Game():
 			player.level = self.level
 			self.respawnPlayer(player, True)
 
-	def showScores(self):
+	def showScores(self, auto):
 		""" Show level scores """
 
 		global screen, sprites, players, play_sounds, sounds
@@ -1687,7 +1687,7 @@ class Game():
 		self.clock.tick(1)
 		self.clock.tick(1)
 
-		if self.game_over:
+		if (auto==False) and self.game_over:
 			self.gameOverScreen()
 		# else:
 			# self.nextLevel()
@@ -1943,7 +1943,7 @@ class Game():
 		return True
 
 
-	def finishLevel(self):
+	def finishLevel(self, auto):
 		""" Finish current level
 		Show earned scores and advance to the next stage
 		"""
@@ -1954,7 +1954,7 @@ class Game():
 			sounds["bg"].stop()
 
 		self.active = False
-		gtimer.add(3000, lambda :self.showScores(), 1)
+		gtimer.add(3000, lambda :self.showScores(auto), 1)
 
 		print("Stage "+str(self.stage)+" completed")
 
@@ -2018,7 +2018,7 @@ class Game():
 
 		# pyautogui.keyDown('up')
 
-	def nextLevel2(self, control, d, v):
+	def nextLevel2(self, control, d, v, auto):
 
 		global play_sounds
 		if v!=None and (not self.running):
@@ -2116,7 +2116,7 @@ class Game():
 					enemies.remove(enemy)
 					print("enemy(%s, %s) dead"%(enemy.rect.top, enemy.rect.left))
 					if len(self.level.enemies_left) == 0 and len(enemies) == 0:
-						self.finishLevel()
+						self.finishLevel(auto)
 				else:
 					enemy.update(time_passed)
 
@@ -2133,7 +2133,7 @@ class Game():
 						if player.lives > 0:
 							self.respawnPlayer(player)
 						else:
-							self.gameOver()
+							self.gameOver(auto)
 
 			for bullet in bullets:
 				if bullet.state == bullet.STATE_REMOVED:
@@ -2151,7 +2151,7 @@ class Game():
 
 			if not self.game_over:
 				if not castle.active:
-					self.gameOver()
+					self.gameOver(auto)
 
 			gtimer.update(time_passed)
 
