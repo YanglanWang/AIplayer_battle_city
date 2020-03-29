@@ -2027,8 +2027,6 @@ class Game():
 			if control!=None and control.empty()!=True:
 				operations=control.get(False)
 
-
-
 			for event in pygame.event.get():
 				if event.type == pygame.MOUSEBUTTONDOWN:
 					pass
@@ -2111,6 +2109,7 @@ class Game():
 			for enemy in enemies:
 				if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:
 					enemies.remove(enemy)
+					print("enemy(%s, %s) dead"%(enemy.rect.top, enemy.rect.left))
 					if len(self.level.enemies_left) == 0 and len(enemies) == 0:
 						self.finishLevel()
 				else:
@@ -2123,6 +2122,7 @@ class Game():
 							self.triggerBonus(bonus, player)
 							player.bonus = None
 					elif player.state == player.STATE_DEAD:
+						print("player(%s, %s) dead" % (player.rect.top, player.rect.left))
 						self.superpowers = 0
 						player.lives -= 1
 						if player.lives > 0:

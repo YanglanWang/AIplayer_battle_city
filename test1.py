@@ -123,7 +123,8 @@ class LoadGame(tanks.Game):
 			for j in range(13):
 				current_left = current_left + self.dir_left[i]
 				current_top = current_top + self.dir_top[i]
-				if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height or self.encoded_map[current_top][current_left] == "t"):
+				if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height
+						or self.encoded_map[current_top][current_left] == "t"):
 					break
 				if (self.encoded_map[current_top][current_left] == "e"):
 					print("the position of origin (%s, %s ) (%s, %s )") % (encoded_player_top, encoded_player_left, player[0].top, player[0].left)
@@ -257,6 +258,18 @@ class LoadGame(tanks.Game):
 					self.UpdateStrategy(control, direction, 1)
 					continue
 
+			# ensure the safety of castle
+			if len(d["enemies"])!=0:
+				for enemy in self.d["enemies"]:
+					if enemy[0].top//UNIT_LENGTH>=7:
+						direction=self.pathToDestination(player, enemy)
+						if(direction!=-1):
+							self.UpdateStrategy(control,direction, 0)
+
+
+
+
+			# search for bonuses
 			if len(d["bonuses"])!=0:
 				direction=self.bfs(player,False)
 				if (direction==-1):
@@ -265,8 +278,6 @@ class LoadGame(tanks.Game):
 				else:
 					print("move to "+str(direction)+" in search of bonus")
 					self.UpdateStrategy(control,direction,0)
-
-
 
 
 			# 3. BFS
@@ -379,8 +390,109 @@ class LoadGame(tanks.Game):
 
 		self.expected_enemies = result
 
+	def pathToDestination(self, player, dest):
+		player_left = player[0].left//UNIT_LENGTH
+		player_top = player[0].top//UNIT_LENGTH
+		player_cor=(player_top,player_left)
 
+		dest_left=dest[0].left//UNIT_LENGTH
+		dest_top=dest[0].top//UNIT_LENGTH
+		dest_cor=(dest_top, dest_left)
 
+		openSet = []
+		cameFrom = dict()
+		gScore = dict()
+		gScore[player_cor] = 0
+		fScore = dict()
+		fScore[player_cor] = self.euclidean_distance(player_cor, dest_cor)
+		heapq.heappush(openSet, player_cor)
+		path = []
+		while len(openSet) != 0:
+			current = heapq.heappop(openSet)
+			if self.isDestination(current, dest_cor):
+				path = self.reconstructPath(cameFrom, current)
+				break
+			# openSet.remove(current)
+			for point_cor in self.neighbour(current):
+				tentatice_gScore = gScore[current] + 1
+				# point_cor=(point.left,point.top)
+				if point_cor not in gScore.keys() or (tentatice_gScore < gScore[point_cor]):
+					cameFrom[point_cor] = current
+					gScore[point_cor] = tentatice_gScore
+					fScore[point_cor] = gScore[point_cor] + self.euclidean_distance(point_cor, dest_cor)
+					if point_cor not in openSet:
+						openSet.append(point_cor)
+
+		if len(path) > 1:
+			# print("path calculated")
+			next = path[1]
+			next_left, next_top = next
+			dir_cmd = False
+
+			# up
+			if player_top > next_top:
+				dir_cmd = 0
+			# down
+			elif player_top < next_top:
+				dir_cmd = 2
+			# left
+			elif player_left > next_left:
+				dir_cmd = 3
+			# right
+			elif player_left < next_left:
+				dir_cmd = 1
+			return dir_cmd
+		else:
+			return -1
+
+	def euclidean_distance(self,x,y):
+		return math.sqrt((x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2)
+
+	def isDestination(self, current_cor, point_cor):
+		return (current_cor[0]==point_cor[0]) and (current_cor[1]==point_cor[1])
+
+	def reconstructPath(self, cameFrom, current):
+		totalPath = [current]
+		while current in cameFrom.keys():
+			current = cameFrom[current]
+			totalPath.insert(0, current)
+		return totalPath
+
+	def neighbour(self, current):
+		allowable_move = []
+		current_top,current_left=current
+		#move up
+		new_top=current_top-1
+		new_left=current_left
+		if new_top<0 or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
+			pass
+		else:
+			allowable_move.append((new_top,new_left))
+
+		# move down
+		new_top=current_top+1
+		new_left=current_left
+		if new_top<self.map_height or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
+			pass
+		else:
+			allowable_move.append((new_top,new_left))
+
+		# move left
+		new_top=current_top
+		new_left=current_left-1
+		if new_left>0 or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
+			pass
+		else:
+			allowable_move.append((new_top,new_left))
+
+		# move right
+		new_top=current_top
+		new_left=current_left+1
+		if new_left<self.map_width or self.encoded_map[new_top][new_left]=="t" or self.dangerous_map[new_top][new_left]==True:
+			pass
+		else:
+			allowable_move.append((new_top,new_left))
+		return allowable_move
 
 	def run(self,auto,bothplayers):
 		self.showMenu(auto, bothplayers)
