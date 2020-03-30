@@ -1,20 +1,29 @@
-import tanks, agent
+import tanks, agent, threading
 import multiprocessing as mp
 
-game=tanks.Game()
-tanks.castle=tanks.Castle()
-class LoadGame():
-	def __init(self):
-		self.stage=0
+game = tanks.Game()
+tanks.castle = tanks.Castle()
 
-	def autorun(self, stage=0, num=1):
-		game.stage=stage
-		game.nr_of_players=num
+class Combine():
+	def __init__(self, stage, num):
+		self.stage=stage
+		self.num=num
+
+
+	def loadtanks(self):
+
+		game.stage=self.stage
+		game.nr_of_players=self.num
 		print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
 		game.nextLevel()
 
-	# @staticmethod
-	def getData(self):
+	def loadagent(self):
+		self.agent=agent.Agent(self.num)
+		return self.agent
+
+	@staticmethod
+	def getData():
+		# if hasattr()
 		d=dict()
 		playersinfo = []
 		enemiesinfo = []
@@ -37,16 +46,18 @@ class LoadGame():
 			bonusesinfo.append([bonus.rect])
 		d["bonuses"] = bonusesinfo
 
+		d["tiles"]=game.level.mapr
 		return d
 
-	def start(self, stage, num):
-		ag = agent.Agent()
+	def start(self):
 
-		# p = threading.Thread(target=ai1.operations)
-		self.autorun(stage, num)
-		p = mp.process(target=ag.run())
+		ag=self.loadagent()
+		p = threading.Thread(target=ag.run)
 		p.start()
+		self.loadtanks()
 
 if __name__ == "__main__":
-	autostart=LoadGame()
-	autostart.start(0,1)
+	stage=0
+	num=1
+	c=Combine(stage,num)
+	c.start()

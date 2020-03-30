@@ -530,5 +530,5 @@ class LoadGame(tanks_change.Game):
 if __name__=='__main__':
 	autogame=LoadGame()
 	tanks_change.castle=tanks_change.Castle()
-	autogame.run(auto=False,bothplayers=False)
+	autogame.run(auto=True,bothplayers=False)
 
