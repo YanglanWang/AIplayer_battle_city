@@ -2088,11 +2088,11 @@ class Game():
 				if player.state == player.STATE_ALIVE and not self.game_over and self.active:
 					if control!=None:
 						if operations[1]==1:
-							if players[0].fire() and play_sounds:
+							if player.fire() and play_sounds:
 								sounds["fire"].play()
 								print("fire")
 						if operations[0]<4:
-							players[0].pressed[operations[0]] = True
+							player.pressed[operations[0]] = True
 					if player.pressed[0] == True:
 						player.move(self.DIR_UP)
 						print("move up")

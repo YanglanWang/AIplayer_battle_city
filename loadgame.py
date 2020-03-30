@@ -13,6 +13,7 @@ class LoadGame():
 		print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
 		game.nextLevel()
 
+	# @staticmethod
 	def getData(self):
 		d=dict()
 		playersinfo = []
@@ -43,7 +44,7 @@ class LoadGame():
 
 		# p = threading.Thread(target=ai1.operations)
 		self.autorun(stage, num)
-		p = mp.process(target=ag.getAction())
+		p = mp.process(target=ag.run())
 		p.start()
 
 if __name__ == "__main__":
