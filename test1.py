@@ -528,40 +528,52 @@ class LoadGame(tanks.Game):
 			self.showMenu(bothplayers, auto)
 			while True:
 				self.nextLevel1()
-				notstart=True
+				print("stage %s begin: "%self.stage)
+				control = mp.Queue()
+				manager=mp.Manager()
+				d=manager.dict()
+				d["players"]=[]
+				d["enemies"]=[]
+				d["bonuses"]=[]
+				d["bullets"]=[]
+				v = mp.Value('i', -1)
+				# arr=mp.Array('i',[1,0])
+				# process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
+				# process = mp.Process(target=self.nextLevel2, args=(control,d,v,auto))
+				process = mp.Process(target=self.nextLevel2, args=(control,d,v,auto))
 
-				while notstart or self.game_over:
-					print("stage %s begin: "%self.stage)
-					control = mp.Queue()
-					manager=mp.Manager()
-					d=manager.dict()
-					d["players"]=[]
-					d["enemies"]=[]
-					d["bonuses"]=[]
-					d["bullets"]=[]
-					v = mp.Value('i', 1)
-					# process = mp.Process(target=self.nextLevel2, args=(arr, lock,d,v))
-					process = mp.Process(target=self.nextLevel2, args=(control,d,v,auto))
-					process.start()
-					# self.nextLevel()
-					while True:
-						time_passed = self.clock.tick(100)
-						# with lock:
-						if v.value==0:
-							# self.kill_ai_process(process)
-							break
-						# self.getAction(arr,lock,d)
-						self.getAction(control, d,v)
-					notstart=False
+				process.start()
+				# self.nextLevel()
+				while True:
+					time_passed = self.clock.tick(100)
+					# with lock:
+					# if v.value==0:
+					if v.value!=-1:
+						print("stage %s end."%self.stage)
+						self.kill_ai_process(process)
+						self.clear_queue(control)
+						break
+					# self.getAction(arr,lock,d)
+					self.getAction(control, d,v)
+				if not v.value:
+					self.stage-=1
 				if self.stage>=35:
 					print("whole stages completed")
 					break
 
 
 	def kill_ai_process(self,p):
-		#p.terminate()
+		p.terminate()
 		os.kill(p.pid,9)
-		print "kill ai_process!!"
+		print "kill process!!"
+
+	def clear_queue(self,queue):
+		if queue.empty()!=True:
+			try:
+				queue.get(False)
+				print "clear queue!!"
+			except Queue.Empty:
+				print "Queue already is empty!!"
 
 	def UpdateStrategy(self, control, direction, fire):
 		if control.empty()==True:

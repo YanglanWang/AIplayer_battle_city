@@ -2021,14 +2021,13 @@ class Game():
 	def nextLevel2(self, control, d, v, auto):
 
 		global play_sounds
-		if v!=None and (not self.running):
-			v.value=0
+
 		if control!=None and v!=None and d!=None:
 			operations = [4,0]
 
 		while self.running:
 
-			time_passed = self.clock.tick(50)
+			time_passed = self.clock.tick(500)
 			if control!=None and control.empty()!=True:
 				operations=control.get(False)
 
@@ -2116,6 +2115,7 @@ class Game():
 					enemies.remove(enemy)
 					print("enemy(%s, %s) dead"%(enemy.rect.top, enemy.rect.left))
 					if len(self.level.enemies_left) == 0 and len(enemies) == 0:
+						v.value=1
 						self.finishLevel(auto)
 				else:
 					enemy.update(time_passed)
@@ -2133,6 +2133,7 @@ class Game():
 						if player.lives > 0:
 							self.respawnPlayer(player)
 						else:
+							v.value=0
 							self.gameOver(auto)
 
 			for bullet in bullets:
@@ -2151,6 +2152,7 @@ class Game():
 
 			if not self.game_over:
 				if not castle.active:
+					v.value=0
 					self.gameOver(auto)
 
 			gtimer.update(time_passed)
