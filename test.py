@@ -1,14 +1,14 @@
 import pyautogui
-import  math, heapq, tanks, pygame, time, os
+import  math, heapq, tanks_change, pygame, time, os
 import multiprocessing as mp
 from multiprocessing import Manager
 # pyautogui.press('enter')
 (TILE_EMPTY, TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE) = range(6)
 
 
-class LoadGame(tanks.Game):
+class LoadGame(tanks_change.Game):
 	def __init__(self):
-		tanks.Game.__init__(self)
+		tanks_change.Game.__init__(self)
 		self.map_height=13
 		self.map_width=13
 		#               up right down left
@@ -529,6 +529,6 @@ class LoadGame(tanks.Game):
 
 if __name__=='__main__':
 	autogame=LoadGame()
-	tanks.castle=tanks.Castle()
+	tanks_change.castle=tanks_change.Castle()
 	autogame.run(auto=False,bothplayers=False)
 
