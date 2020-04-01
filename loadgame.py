@@ -63,8 +63,11 @@ class Combine():
 
 		ag=self.loadagent()
 		p = threading.Thread(target=ag.run)
+		# p=mp.Process(target=ag.run)
 		p.start()
 		self.loadtanks()
+		p.join()
+		# self.loadtanks()
 		if not game.running:
 			self.kill_process(p)
 

@@ -146,7 +146,7 @@ class Agent():
 					print("the position of enemy (%s, %s)") % (current_top, current_left)
 					logging.info("the position of origin (%s, %s), the position of enemy (%s, %s)"%(encoded_player_top,
 					                                    encoded_player_left, current_top, current_left))
-					if abs(self.enemy_direction[current_top][current_left]-i)==2:
+					if abs(self.enemy_direction[current_top][current_left]-i)==2 or j<=3:
 						# if the enemy and player are in the opposite running directions, the player keeps its position; else runs to enemy
 						return -1
 					else:
@@ -285,17 +285,17 @@ class Agent():
 				return
 		if player[1] == 1:
 			if player[0].left % UNIT_LENGTH > 3:
-				print("move left to adjust position, player position: (%s, %s, %s, %s)" % (
+				print("move right to adjust position, player position: (%s, %s, %s, %s)" % (
 				player[0].top, player[0].left, player[0].bottom, player[0].right))
-				logging.info("move left to adjust position, player position: (%s, %s, %s, %s)" % (
+				logging.info("move right to adjust position, player position: (%s, %s, %s, %s)" % (
 				player[0].top, player[0].left, player[0].bottom, player[0].right))
 				self.UpdateStrategy(1, 0)
 				return
 		if player[1] == 3:
 			if player[0].left % UNIT_LENGTH > 3:
-				print("move right to adjust position, player position: (%s, %s, %s, %s)" % (
+				print("move left to adjust position, player position: (%s, %s, %s, %s)" % (
 				player[0].top, player[0].left, player[0].bottom, player[0].right))
-				logging.info("move right to adjust position, player position: (%s, %s, %s, %s)" % (
+				logging.info("move left to adjust position, player position: (%s, %s, %s, %s)" % (
 				player[0].top, player[0].left, player[0].bottom, player[0].right))
 				self.UpdateStrategy(3, 0)
 				return
