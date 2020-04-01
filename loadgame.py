@@ -1,4 +1,4 @@
-import tanks, agent, threading, os, logging
+import tanks, agent, threading, os, logging, thread
 import multiprocessing as mp
 
 game = tanks.Game()
@@ -31,28 +31,28 @@ class Combine():
 		bulletsinfo = []
 		bonusesinfo = []
 		for player in tanks.players:
-			print("players >0")
-			logging.info("players >0")
+			# print("players >0")
+			# logging.info("players >0")
 
 			# playersinfo.append([player.rect, player.direction, player.speed])
 			playersinfo.append([player.rect, player.direction, player.speed])
 		d["players"] = playersinfo
 
 		for enemy in tanks.enemies:
-			print("enemies>0")
-			logging.info("enemies>0")
+			# print("enemies>0")
+			# logging.info("enemies>0")
 			enemiesinfo.append([enemy.rect, enemy.direction])
 		d["enemies"] = enemiesinfo
 
 		for bullet in tanks.bullets:
-			print("bullets > 0")
-			logging.info("bullets>0")
+			# print("bullets > 0")
+			# logging.info("bullets>0")
 			bulletsinfo.append([bullet.rect, bullet.direction])
 		d["bullets"] = bulletsinfo
 
 		for bonus in tanks.bonuses:
-			print("bonuses>0")
-			logging.info("bonuses>0")
+			# print("bonuses>0")
+			# logging.info("bonuses>0")
 			bonusesinfo.append([bonus.rect])
 		d["bonuses"] = bonusesinfo
 
@@ -62,12 +62,18 @@ class Combine():
 	def start(self):
 
 		ag=self.loadagent()
+
 		p = threading.Thread(target=ag.run)
-		# p=mp.Process(target=ag.run)
 		p.start()
+
+
 		self.loadtanks()
-		p.join()
-		# self.loadtanks()
+		# p.join()
+
+		# p=mp.Process(target=ag.run)
+		# p2=threading.Thread(target=self.loadtanks)
+		# p.start()
+		# p2.start()
 		if not game.running:
 			self.kill_process(p)
 
