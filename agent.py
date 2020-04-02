@@ -3,8 +3,8 @@ import  math, heapq, tanks, pygame, time, os, Queue, loadgame, logging
 import multiprocessing as mp
 # pyautogui.press('enter')
 format = "%(asctime)s: %(message)s"
-# logging.basicConfig(format=format,level=logging.INFO, datefmt="%H:%M:%S")
-logging.basicConfig(format=format, filename='test.log',level=logging.INFO, datefmt="%H:%M:%S")
+logging.basicConfig(format=format,level=logging.INFO, datefmt="%H:%M:%S")
+# logging.basicConfig(format=format, filename='test.log',level=logging.INFO, datefmt="%H:%M:%S")
 
 (TILE_EMPTY, TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE) = range(6)
 UNIT_LENGTH=32
@@ -71,47 +71,48 @@ class Agent():
 
 
 
-	def dodge_bullets(self, player):
-		bullets=self.d["bullets"]
-		range = 100
+	def dodge_bullets_enemies(self, player):
+		bullets = self.d["bullets"]
+		tanks=self.d["enemies"]
 
 		encoded_player_left=player[0].left//32
 		encoded_player_top=player[0].top//32
 		# player_bottom=player_top+player[0].height
 		# player_right=player_left+player[0].width
-		for bullet in bullets:
-			encoded_bullet_left = bullet[0].left / 32
-			encoded_bullet_top = bullet[0].top / 32
-			bullet_dir = bullet[1]
+		for object in [bullets, tanks]:
+			for bullet in object:
+				encoded_bullet_left = bullet[0].left / 32
+				encoded_bullet_top = bullet[0].top / 32
+				bullet_dir = bullet[1]
 
-			# bullet is in the top of player
-			if (encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<=2 and player[1]==0):
-				if ((encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<=2 and bullet_dir == 3) or
-						(encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<=2 and  bullet_dir == 1)):
-					# print("stop to dodge bullet in the top")
-					logging.info("stop to dodge bullet in the top")
-					return 4
-			# bullet is in below the player
-			if (encoded_bullet_top-encoded_player_top>1 and encoded_bullet_top-encoded_player_top<=2 and player[1]==2):
-				if ((encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<=2 and bullet_dir == 3) or
-						(encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<=2 and  bullet_dir == 1)):
-					# print("dodge bullet in the bottom")
-					logging.info("dodge bullet in the bottom")
-					return 4
-			# bullet is in the left part of player
-			if (encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<=2 and  player[1] == 3):
-				if ((encoded_bullet_top - encoded_player_top > 1 and encoded_bullet_top - encoded_player_top <= 2 and bullet_dir==0) or
-					(encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<=2 and bullet_dir==2)):
-					# print("dodge bullet in the left")
-					logging.info("dodge bullet in the left")
-					return 4
-			# bullet is in the right part of player
-			if (encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<=2 and  player[1] == 1):
-				if ((encoded_bullet_top - encoded_player_top > 1 and encoded_bullet_top - encoded_player_top <= 2 and bullet_dir==0) or
-					(encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<=2 and bullet_dir==2)):
-					# print("dodge bullet in the right")
-					logging.info("dodge bullet in the right")
-					return 4
+				# bullet is in the top of player
+				if (encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<4 and player[1]==0):
+					if ((encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<4 and bullet_dir == 3) or
+							(encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<4 and  bullet_dir == 1)):
+						# print("stop to dodge bullet in the top")
+						logging.info("stop to dodge bullets or enemies in the top")
+						return 4
+				# bullet is in below the player
+				if (encoded_bullet_top-encoded_player_top>1 and encoded_bullet_top-encoded_player_top<4 and player[1]==2):
+					if ((encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<4 and bullet_dir == 3) or
+							(encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<4 and  bullet_dir == 1)):
+						# print("dodge bullet in the bottom")
+						logging.info("dodge bullets or enemies in the bottom")
+						return 4
+				# bullet is in the left part of player
+				if (encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<4 and  player[1] == 3):
+					if ((encoded_bullet_top - encoded_player_top > 1 and encoded_bullet_top - encoded_player_top <4 and bullet_dir==0) or
+						(encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<4 and bullet_dir==2)):
+						# print("dodge bullet in the left")
+						logging.info("dodge bullets or enemies in the left")
+						return 4
+				# bullet is in the right part of player
+				if (encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<4 and  player[1] == 1):
+					if ((encoded_bullet_top - encoded_player_top > 1 and encoded_bullet_top - encoded_player_top <4 and bullet_dir==0) or
+						(encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<4 and bullet_dir==2)):
+						# print("dodge bullet in the right")
+						logging.info("dodge bullets or enemies in the right")
+						return 4
 
 		return -1
 
@@ -149,9 +150,9 @@ class Agent():
 		current_left=encoded_player_left
 		current_top=encoded_player_top
 
-		for j in range(13):
-			current_left = current_left + self.dir_left[i]
-			current_top = current_top + self.dir_top[i]
+		for j in range(14):
+			current_left = encoded_player_left + self.dir_left[i]*j
+			current_top = encoded_player_top + self.dir_top[i]*j
 			if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height
 					or "t" in self.encoded_map[current_top][current_left]):
 				break
@@ -188,14 +189,14 @@ class Agent():
 		# for i_th in range(len(self.d["players"])):
 		player = self.d["players"][i]
 
-		# dodge the bullets
-		if len(self.d["bullets"]) != 0:
-			direction = self.dodge_bullets(player)
+		# dodge the bullets and enemies
+		if len(self.d["bullets"]) != 0 or len(self.d["enemies"])!=0:
+			direction = self.dodge_bullets_enemies(player)
 			if (direction != -1):
-				print "Dodge Bullet"
-				logging.info("Dodge Bullet")
+				logging.info("Dodge bullets or enemies")
 				self.UpdateStrategy(direction, 0)
 				return
+
 
 		# fire to bullets in the same vertical or horizontal direction
 		if len(self.d["bullets"]) != 0:
@@ -205,23 +206,6 @@ class Agent():
 				logging.info("find bullet running to the player, fire to %s" % (direction))
 				self.UpdateStrategy(direction, 1)
 				return
-
-		# ensure the safety of castle
-		if len(self.d["enemies"]) != 0:
-			enemies_sorted_castle = sorted(self.d["enemies"], key=lambda enemy:
-			self.euclidean_distance((enemy[0].top // UNIT_LENGTH, enemy[0].left // UNIT_LENGTH), (12, 6.5)))
-
-			# for enemy in enemies_sorted:
-			enemy = enemies_sorted_castle[0]
-			if enemy[0].top // UNIT_LENGTH >= 7:
-				direction = self.pathToDestination(player, enemy)
-				if (direction != -1):
-					print("ensure the safety of castle, the position of player (%s, %s), move to %s" % (
-					player[0].top, player[0].left, direction))
-					logging.info("ensure the safety of castle, the position of player (%s, %s), move to %s" % (
-					player[0].top, player[0].left, direction))
-					self.UpdateStrategy(direction, 0)
-					return
 
 		# adjust position and check for tanks in this direction
 		if player[1] == 0:
@@ -270,8 +254,8 @@ class Agent():
 				logging.info("move right to attack enemy, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
-			direction=self.check_tanks(player, 3)
-			if direction!=-1:
+			direction = self.check_tanks(player, 3)
+			if direction != -1:
 				self.UpdateStrategy(direction, 1)
 				logging.info("move left to attack enemey, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
@@ -300,11 +284,25 @@ class Agent():
 
 			if player[0].left % UNIT_LENGTH > 3:
 				self.UpdateStrategy(3, 0)
-				print("move left to adjust position, player position: (%s, %s, %s, %s),no fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				logging.info("move left to adjust position, player position: (%s, %s, %s, %s),no fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
+		# ensure the safety of castle
+		if len(self.d["enemies"]) != 0:
+			enemies_sorted_castle = sorted(self.d["enemies"], key=lambda enemy:
+			self.euclidean_distance((enemy[0].top // UNIT_LENGTH, enemy[0].left // UNIT_LENGTH), (12, 6.5)))
+
+			# for enemy in enemies_sorted:
+			enemy = enemies_sorted_castle[0]
+			if enemy[0].top // UNIT_LENGTH >= 7:
+				direction = self.pathToDestination(player, enemy)
+				if (direction != -1):
+					logging.info("ensure the safety of castle, the position of dangerous enemy (%s,%s),"
+					             "the position of player (%s, %s), move to %s" % (enemy[0].top,enemy[0].left,
+						player[0].top, player[0].left, direction))
+					self.UpdateStrategy(direction, 0)
+					return
+
 
 		# check for tanks in the four directions
 		if len(self.d["enemies"]) != 0:
@@ -768,7 +766,6 @@ class Agent():
 				if operations[1] == 1:
 					if player.fire() and tanks.play_sounds:
 						tanks.sounds["fire"].play()
-						print("fire")
 						logging.info("fire")
 					else:
 						logging.info("cannot fire")
@@ -780,7 +777,6 @@ class Agent():
 					logging.info("move up")
 				elif player.pressed[1] == True:
 					player.move(DIR_RIGHT)
-					print("move right")
 					logging.info("move right")
 				elif player.pressed[2] == True:
 					player.move(DIR_DOWN)
@@ -792,12 +788,8 @@ class Agent():
 					logging.info("move left")
 				if operations[0] < 4:
 					player.pressed[operations[0]] = False
-				print("press false")
 				logging.info("player 's position after movement (%s,%s)" % (player.rect.top, player.rect.left))
 				logging.info("press false")
-			before_update = (player.rect.top, player.rect.left)
-			if before_update == (player.rect.top, player.rect.left):
-				print("the player' s position after movement: (%s, %s)" % (player.rect.top, player.rect.left))
 
 	# def applyAction(self,i,queue,event):
 	# 	while not event.is_set() or not queue.empty():

@@ -2048,6 +2048,7 @@ class Game():
             for enemy in enemies:
                 if enemy.state == enemy.STATE_DEAD and not self.game_over and self.active:
                     enemies.remove(enemy)
+                    logging.info("enemy (%s,%s) dead"%(enemy.rect.top,enemy.rect.left))
                     if len(self.level.enemies_left) == 0 and len(enemies) == 0:
                         self.finishLevel()
                 else:
@@ -2060,6 +2061,7 @@ class Game():
                             self.triggerBonus(bonus, player)
                             player.bonus = None
                     elif player.state == player.STATE_DEAD:
+                        logging.info("player (%s, %s) dead"%(player.rect.top, player.rect.left))
                         self.superpowers = 0
                         player.lives -= 1
                         if player.lives > 0:
