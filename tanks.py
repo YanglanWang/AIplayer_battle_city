@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
 
-import os, pygame, time, random, uuid, sys
+import os, pygame, time, random, uuid, sys, logging
 
 class myRect(pygame.Rect):
     """ Add type property """
@@ -480,7 +480,8 @@ class Level():
         global screen
 
         if tiles == None:
-            tiles = [TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE]
+            # tiles = [TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE]
+            tiles = [self.TILE_BRICK, self.TILE_STEEL, self.TILE_WATER, self.TILE_GRASS, self.TILE_FROZE]
 
         for tile in self.mapr:
             if tile.type in tiles:
@@ -1207,22 +1208,26 @@ class Player(Tank):
 
         # collisions with tiles
         if player_rect.collidelist(self.level.obstacle_rects) != -1:
-            return
+	        logging.info("cannot move, collide with tile")
+	        return
 
         # collisions with other players
         for player in players:
             if player != self and player.state == player.STATE_ALIVE and player_rect.colliderect(player.rect) == True:
-                return
+	            logging.info("cannot move, collide with players")
+	            return
 
         # collisions with enemies
         for enemy in enemies:
             if player_rect.colliderect(enemy.rect) == True:
-                return
+	            logging.info("cannnot move, collide with enemies")
+	            return
 
         # collisions with bonuses
         for bonus in bonuses:
             if player_rect.colliderect(bonus.rect) == True:
-                self.bonus = bonus
+	            logging.info("cannot move, collide with bonuses")
+	            self.bonus = bonus
 
         #if no collision, move player
         self.rect.topleft = (new_position[0], new_position[1])
@@ -1919,6 +1924,7 @@ class Game():
     def nextLevel(self):
         """ Start next level """
 
+
         global castle, players, bullets, bonuses, play_sounds, sounds
 
         del bullets[:]
@@ -1971,7 +1977,7 @@ class Game():
         self.draw()
 
         while self.running:
-
+            logging.info("run nextlevel when self.running")
             time_passed = self.clock.tick(50)
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -2076,6 +2082,8 @@ class Game():
             if not self.game_over:
                 if not castle.active:
                     self.gameOver()
+
+            logging.info("end nextlevel when self.running")
 
             gtimer.update(time_passed)
 

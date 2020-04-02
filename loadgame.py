@@ -1,20 +1,28 @@
-import tanks, agent, threading, os, logging, thread
+import tanks, agent, threading, os, logging, thread, time, Queue
 import multiprocessing as mp
 
 game = tanks.Game()
 tanks.castle = tanks.Castle()
+lock=threading.Lock()
 
 class Combine():
 	def __init__(self, stage, num):
 		self.stage=stage
 		self.num=num
 
+	def loadtanks(self,event):
+		while not event.is_set():
+			game.stage=self.stage
+			game.nr_of_players=self.num
+		# print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
+			logging.info("stage %s starts, %s players"%(game.stage, game.nr_of_players))
+			game.nextLevel()
 
 	def loadtanks(self):
-
+		# while not event.is_set():
 		game.stage=self.stage
 		game.nr_of_players=self.num
-		print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
+	# print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
 		logging.info("stage %s starts, %s players"%(game.stage, game.nr_of_players))
 		game.nextLevel()
 
@@ -62,20 +70,31 @@ class Combine():
 	def start(self):
 
 		ag=self.loadagent()
+		# p1 = threading.Thread(target=ag.run)
+		# event = threading.Event()
+		# queue = Queue.Queue(maxsize=10)
+		# p1=threading.Thread(target=ag.getAction,args=(0,queue,event))
+		# p2=threading.Thread(target=ag.applyAction, args=(0,queue,event))
+		# # p3=threading.Thread(target=self.loadtanks, args=(event,))
+		# p1.start()
+		# p2.start()
+		# # p3.start()
 
-		p = threading.Thread(target=ag.run)
-		p.start()
-
-
+		p1=threading.Thread(target=ag.run,)
+		p1.start()
 		self.loadtanks()
+			# time.sleep(0.1)
+
+
+		# self.loadtanks()
 		# p.join()
 
 		# p=mp.Process(target=ag.run)
 		# p2=threading.Thread(target=self.loadtanks)
 		# p.start()
 		# p2.start()
-		if not game.running:
-			self.kill_process(p)
+		# if not game.running:
+		# 	self.kill_process(p2)
 
 	def kill_process(self, p):
 		#p.terminate()
