@@ -745,7 +745,7 @@ class Agent():
 	def run(self):
 		while True:
 			for i in range(len(tanks.players)):
-				# time_passed = self.clock.tick(100)
+				time_passed = self.clock.tick(50)
 				self.getAction(i)
 				self.applyAction(i)
 

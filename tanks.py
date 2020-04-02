@@ -1177,14 +1177,16 @@ class Player(Tank):
                 del self.explosion
 
         if self.state != self.STATE_ALIVE:
-            return
+	        logging.info("state is not alive")
+	        return
 
         # rotate player
         if self.direction != direction:
             self.rotate(direction)
 
         if self.paralised:
-            return
+	        logging.info("self.paralised is true")
+	        return
 
         # move player
         if direction == self.DIR_UP:
