@@ -2093,6 +2093,8 @@ class Game():
 
             self.draw()
 
+        logging.info("self.running false")
+
 gtimer = Timer()
 
 sprites = None

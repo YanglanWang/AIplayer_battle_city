@@ -1,4 +1,4 @@
-import tanks, agent, threading, os, logging, thread, time, Queue
+import tanks, agent, threading, os, logging, thread, time, Queue, pygame
 import multiprocessing as mp
 
 game = tanks.Game()
@@ -10,21 +10,16 @@ class Combine():
 		self.stage=stage
 		self.num=num
 
-	def loadtanks(self,event):
-		while not event.is_set():
-			game.stage=self.stage
-			game.nr_of_players=self.num
-		# print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
-			logging.info("stage %s starts, %s players"%(game.stage, game.nr_of_players))
-			game.nextLevel()
 
 	def loadtanks(self):
-		# while not event.is_set():
 		game.stage=self.stage
 		game.nr_of_players=self.num
 	# print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
 		logging.info("stage %s starts, %s players"%(game.stage, game.nr_of_players))
+
 		game.nextLevel()
+
+
 
 	def loadagent(self):
 		self.agent=agent.Agent(self.num)
@@ -67,34 +62,24 @@ class Combine():
 		d["tiles"]=game.level.mapr
 		return d
 
+	def game_over(self,p2):
+		logging.info("game_over check")
+		if hasattr(game, "game_over") and game.game_over:
+			os.kill(p2.pid,9)
+
+
+
 	def start(self):
-
 		ag=self.loadagent()
-		# p1 = threading.Thread(target=ag.run)
-		# event = threading.Event()
-		# queue = Queue.Queue(maxsize=10)
-		# p1=threading.Thread(target=ag.getAction,args=(0,queue,event))
-		# p2=threading.Thread(target=ag.applyAction, args=(0,queue,event))
-		# # p3=threading.Thread(target=self.loadtanks, args=(event,))
-		# p1.start()
-		# p2.start()
-		# # p3.start()
-
-		p1=threading.Thread(target=ag.run,)
+		p2=threading.Thread(target=self.loadtanks)
+		p1=threading.Thread(target=ag.run, args=(p2,))
+		# p3=threading.Thread(target=self.game_over,)
 		p1.start()
-		self.loadtanks()
-			# time.sleep(0.1)
-
-
+		# p2=threading.Thread(target=game_over)
+		p2.start()
+		# p3.start()
 		# self.loadtanks()
-		# p.join()
-
-		# p=mp.Process(target=ag.run)
-		# p2=threading.Thread(target=self.loadtanks)
-		# p.start()
-		# p2.start()
-		# if not game.running:
-		# 	self.kill_process(p2)
+			# time.sleep(0.1)
 
 	def kill_process(self, p):
 		#p.terminate()
