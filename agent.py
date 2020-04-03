@@ -107,11 +107,16 @@ class Agent():
 
 		return -1
 
-	def check_bullets(self,player):
+	def check_bullets(self,player,i):
+		if len(self.d["players"])>1:
+			other_player=self.d["players"][1-i]
+			other_encoded_player_left = other_player[0].left
+			other_encoded_player_top = other_player[0].top
 
 		bullets=self.d["bullets"]
 		encoded_player_left=player[0].left
 		encoded_player_top=player[0].top
+
 		for bullet in bullets:
 			encoded_bullet_left = bullet[0][0]
 			encoded_bullet_top = bullet[0][1]
@@ -119,27 +124,40 @@ class Agent():
 
 			# in the same vertical side
 			if (encoded_bullet_left == encoded_player_left):
-				if (encoded_player_top - encoded_bullet_top>0 and bullet_dir == 2):
-					return 0
+				if (len(self.d["players"])>1 and other_encoded_player_left==encoded_player_left and
+					encoded_player_top - encoded_bullet_top>0 and bullet_dir == 2 and other_encoded_player_top>encoded_player_top):
+						return 0
+				elif (len(self.d["players"])==1 and encoded_player_top - encoded_bullet_top>0 and bullet_dir == 2 ):
+						return 0
 
-				elif (encoded_bullet_top - encoded_player_top>0 and bullet_dir == 0):
-					return 2
+				elif (len(self.d["players"])>1 and other_encoded_player_left==encoded_player_left and
+				      encoded_player_top - encoded_bullet_top<0 and bullet_dir == 0 and other_encoded_player_top<encoded_player_top):
+						return 2
+				elif (len(self.d["players"])==1 and encoded_player_top - encoded_bullet_top<0 and bullet_dir == 0 ):
+						return 2
+
 
 			# in the same horizontal side
 			if (encoded_bullet_top == encoded_player_top):
-				if (encoded_player_left - encoded_bullet_left>0 and bullet_dir == 1):
-					return 3
+				if (len(self.d["players"])>1 and other_encoded_player_top==encoded_player_top and
+					encoded_player_left - encoded_bullet_left>0 and bullet_dir == 1 and encoded_player_left<other_encoded_player_left):
+						return 3
+				elif (encoded_player_left - encoded_bullet_left>0 and bullet_dir == 1):
+						return 3
 
+				elif (len(self.d["players"])>1 and other_encoded_player_top==encoded_player_top and
+				      encoded_bullet_left - encoded_player_left>0 and bullet_dir == 3 and other_encoded_player_left<encoded_player_left):
+						return 1
 				elif (encoded_bullet_left - encoded_player_left>0 and bullet_dir == 3):
-					return 1
+						return 1
 
 		return -1
 
-	def check_tanks(self, player, i):
+	def check_tanks(self, player, i, i_player):
 		encoded_player_left=player[0].left//UNIT_LENGTH
 		encoded_player_top=player[0].top//UNIT_LENGTH
-		current_left=encoded_player_left
-		current_top=encoded_player_top
+		# current_left=encoded_player_left
+		# current_top=encoded_player_top
 
 		for j in range(14):
 			current_left = encoded_player_left + self.dir_left[i]*j
@@ -147,19 +165,22 @@ class Agent():
 			if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height
 					or "t" in self.encoded_map[current_top][current_left]):
 				break
-			if ("e" in self.encoded_map[current_top][current_left] ):
-				# print("the position of origin (%s, %s ) (%s, %s )") % (encoded_player_top, encoded_player_left, player[0].top, player[0].left)
-				# print("the position of enemy (%s, %s)") % (current_top, current_left)
+			if ("e" in self.encoded_map[current_top][current_left]):
+				if len(self.d["players"])>1:
+					other_encoded_player_left = self.d["players"][1-i_player][0].left // UNIT_LENGTH
+					other_encoded_player_top = self.d["players"][1-i_player][0].top // UNIT_LENGTH
+					if (encoded_player_left<=other_encoded_player_left<=current_left and
+							encoded_player_top<=other_encoded_player_top<=current_top):
+						break
+					else:
+						return i
+				else:
+					return i
 				logging.info("the position of origin (%s, %s), the position of enemy (%s, %s)"%(encoded_player_top,
 				                                    encoded_player_left, current_top, current_left))
-				# if abs(self.enemy_direction[current_top][current_left]-i)==2 or j<=3:
-				# 	# if the enemy and player are in the opposite running directions, the player keeps its position; else runs to enemy
-				# 	return 4
-				# else:
-				return i
 		return -1
 
-	def check_bonus(self, player, i):
+	def check_bonus(self, player, i,i_player):
 		encoded_player_left=player[0].left//UNIT_LENGTH
 		encoded_player_top=player[0].top//UNIT_LENGTH
 		for j in range(14):
@@ -168,20 +189,21 @@ class Agent():
 			if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height):
 				break
 			if ("o" in self.encoded_map[current_top][current_left] ):
-				# print("the position of origin (%s, %s ) (%s, %s )") % (encoded_player_top, encoded_player_left, player[0].top, player[0].left)
-				# print("the position of enemy (%s, %s)") % (current_top, current_left)
+				if len(self.d["players"]) > 1:
+					other_encoded_player_left = self.d["players"][1 - i_player][0].left // UNIT_LENGTH
+					other_encoded_player_top = self.d["players"][1 - i_player][0].top // UNIT_LENGTH
+					if (encoded_player_left <= other_encoded_player_left <= current_left and
+							encoded_player_top <= other_encoded_player_top <= current_top):
+						break
+					else:
+						return i
 				logging.info("the position of origin (%s, %s), the position of bonus (%s, %s)"%(encoded_player_top,
 				                                    encoded_player_left, current_top, current_left))
-				# if abs(self.enemy_direction[current_top][current_left]-i)==2 or j<=3:
-				# 	# if the enemy and player are in the opposite running directions, the player keeps its position; else runs to enemy
-				# 	return 4
-				# else:
 				return i
 		return -1
 
 
-
-	def getAction(self, i):
+	def getAction(self, i_player):
 		while True:
 			if hasattr(loadgame.game, "level"):
 				break
@@ -200,7 +222,10 @@ class Agent():
 		# self.dangerous_map = self.generate_dangerous_map()
 
 		# for i_th in range(len(self.d["players"])):
-		player = self.d["players"][i]
+		player = self.d["players"][i_player]
+		unicode_player_top=player[0].top//UNIT_LENGTH
+		unicode_player_left=player[0].left//UNIT_LENGTH
+		player_cor=(unicode_player_top,unicode_player_left)
 
 		# dodge the bullets and enemies
 		if len(self.d["bullets"]) != 0 or len(self.d["enemies"])!=0:
@@ -213,7 +238,7 @@ class Agent():
 
 		# fire to bullets in the same vertical or horizontal direction
 		if len(self.d["bullets"]) != 0:
-			direction = self.check_bullets(player)
+			direction = self.check_bullets(player,i_player)
 			if (direction != -1):
 				print "find bullet running to the player, fire to %s" % (direction)
 				logging.info("find bullet running to the player, fire to %s" % (direction))
@@ -222,15 +247,15 @@ class Agent():
 
 		# adjust position and check for tanks and bonus in this direction
 		if player[1] == 0:
-			direction1 = self.check_tanks(player, 0)
-			direction2 = self.check_bonus(player, 0)
+			direction1 = self.check_tanks(player, 0, i_player)
+			direction2 = self.check_bonus(player, 0,i_player)
 			if direction1 != -1 or direction2!=-1:
 				self.UpdateStrategy(0, 1)
 				logging.info("move up to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
-			direction = self.check_tanks(player, 2)
-			direction2= self.check_bonus(player, 2)
+			direction = self.check_tanks(player, 2,i_player)
+			direction2= self.check_bonus(player, 2, i_player)
 			if direction != -1 or direction2!=-1:
 				self.UpdateStrategy(2, 1)
 				logging.info("move down to attack enemyor bonus's tile, player position: (%s, %s, %s, %s), fire" % (
@@ -243,15 +268,15 @@ class Agent():
 				return
 
 		if player[1] == 2:
-			direction = self.check_tanks(player, 2)
-			direction2 = self.check_bonus(player, 2)
+			direction = self.check_tanks(player, 2, i_player)
+			direction2 = self.check_bonus(player, 2, i_player)
 			if direction != -1 or direction2!=-1:
 				logging.info("move down to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				self.UpdateStrategy(direction, 1)
 				return
-			direction = self.check_tanks(player, 0)
-			direction2=self.check_bonus(player,0)
+			direction = self.check_tanks(player, 0, i_player)
+			direction2=self.check_bonus(player,0, i_player)
 			if direction != -1 or direction2!=-1:
 				logging.info("move up to attack enemy, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
@@ -265,15 +290,15 @@ class Agent():
 				return
 
 		if player[1] == 1:
-			direction = self.check_tanks(player, 1)
-			direction2=self.check_bonus(player, 1)
+			direction = self.check_tanks(player, 1, i_player)
+			direction2=self.check_bonus(player, 1,i_player)
 			if direction != -1 or direction2!=-1:
 				self.UpdateStrategy(direction, 1)
 				logging.info("move right to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
-			direction = self.check_tanks(player, 3)
-			direction2=self.check_bonus(player,3)
+			direction = self.check_tanks(player, 3,i_player)
+			direction2=self.check_bonus(player,3,i_player)
 			if direction != -1 or direction2!=-1:
 				self.UpdateStrategy(direction, 1)
 				logging.info("move left to attack enemey or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
@@ -287,16 +312,16 @@ class Agent():
 				return
 
 		if player[1] == 3:
-			direction = self.check_tanks(player, 3)
-			direction2=self.check_bonus(player,3)
+			direction = self.check_tanks(player, 3, i_player)
+			direction2=self.check_bonus(player,3, i_player)
 			if direction != -1 or direction2!=-1:
 				self.UpdateStrategy(direction, 1)
 				logging.info("move left to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
 
-			direction = self.check_tanks(player, 1)
-			direction2=self.check_bonus(player,1)
+			direction = self.check_tanks(player, 1, i_player)
+			direction2=self.check_bonus(player,1, i_player)
 			if direction != -1 or direction2!=-1:
 				self.UpdateStrategy(direction, 1)
 				logging.info("move right to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
@@ -336,7 +361,7 @@ class Agent():
 		# check for tanks in the four directions
 		if len(self.d["enemies"]) != 0:
 			for i in range(4):
-				direction = self.check_tanks(player, i)
+				direction = self.check_tanks(player, i,i_player)
 				if (direction != -1):
 					print "find tank, fire to direction %s" % direction
 					self.UpdateStrategy(direction, 1)
@@ -381,6 +406,17 @@ class Agent():
 					logging.info("no movement in search of bonus")
 				else:
 					logging.info("move to " + str(direction) + " in search of bonus")
+					self.UpdateStrategy(direction, 0)
+					return
+		if i_player==1:
+			if player_cor==(12,8):
+				return
+			else:
+				direction=self.pathToDestination(player_cor,(12, 8),isbonus=False)
+				if (direction == -1):
+					logging.info("no movement to return to castle")
+				else:
+					logging.info("move to " + str(direction) + " to return to castle")
 					self.UpdateStrategy(direction, 0)
 					return
 
@@ -553,7 +589,7 @@ class Agent():
 				loadgame.game.running=False
 
 			for i in range(len(tanks.players)):
-				time_passed = self.clock.tick(50)
+				time_passed = self.clock.tick(100)
 				self.getAction(i)
 				self.applyAction(i)
 
