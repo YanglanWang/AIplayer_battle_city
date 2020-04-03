@@ -56,9 +56,15 @@ class Agent():
 		for tile in	self.d["tiles"]:
 			t_left=tile.left//32
 			t_top=tile.top//32
-			if tile.type != TILE_GRASS and tile.type != TILE_FROZE:
-				if "t" not in result[t_top][t_left]:
-					result[t_top][t_left]+="t"
+			if tile.type == TILE_BRICK:
+				if "r" not in result[t_top][t_left]:
+					result[t_top][t_left]+="r"
+			if tile.type ==TILE_STEEL:
+				if "s" not in result[t_top][t_left]:
+					result[t_top][t_left]+="s"
+			if tile.type==TILE_WATER:
+				if "w" not in result[t_top][t_left]:
+					result[t_top][t_left]+="w"
 		return result
 
 
@@ -163,7 +169,7 @@ class Agent():
 			current_left = encoded_player_left + self.dir_left[i]*j
 			current_top = encoded_player_top + self.dir_top[i]*j
 			if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height
-					or "t" in self.encoded_map[current_top][current_left]):
+					or "s" in self.encoded_map[current_top][current_left] or "r" in self.encoded_map[current_top][current_left]):
 				break
 			if ("e" in self.encoded_map[current_top][current_left]):
 				if len(self.d["players"])>1:
@@ -262,9 +268,14 @@ class Agent():
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
 			if player[0].top % UNIT_LENGTH > 3:
-				logging.info("move up to adjust position, player position: (%s, %s, %s, %s), no fire" % (
+				if "r" in self.encoded_map[unicode_player_top][unicode_player_left]:
+					logging.info("move up to adjust position, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
-				self.UpdateStrategy(0, 0)
+					self.UpdateStrategy(0, 1)
+				else:
+					logging.info("move up to adjust position, player position: (%s, %s, %s, %s), no fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+					self.UpdateStrategy(0, 0)
 				return
 
 		if player[1] == 2:
@@ -284,9 +295,14 @@ class Agent():
 				return
 
 			if player[0].top % UNIT_LENGTH > 3:
-				logging.info("move down to adjust position, player position: (%s, %s, %s, %s), no fire" % (
+				if "r" in self.encoded_map[unicode_player_top+1][unicode_player_left]:
+					logging.info("move down to adjust position, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
-				self.UpdateStrategy(2, 0)
+					self.UpdateStrategy(2, 1)
+				else:
+					logging.info("move down to adjust position, player position: (%s, %s, %s, %s), no fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+					self.UpdateStrategy(2,0)
 				return
 
 		if player[1] == 1:
@@ -306,8 +322,13 @@ class Agent():
 				return
 
 			if player[0].left % UNIT_LENGTH > 3:
-				self.UpdateStrategy(1, 0)
-				logging.info("move right to adjust position, player position: (%s, %s, %s, %s), no fire" % (
+				if "r" in self.encoded_map[unicode_player_top][unicode_player_left+1]:
+					self.UpdateStrategy(1, 1)
+					logging.info("move right to adjust position, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				else:
+					self.UpdateStrategy(1, 0)
+					logging.info("move right to adjust position, player position: (%s, %s, %s, %s), no fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
 
@@ -329,8 +350,13 @@ class Agent():
 				return
 
 			if player[0].left % UNIT_LENGTH > 3:
-				self.UpdateStrategy(3, 0)
-				logging.info("move left to adjust position, player position: (%s, %s, %s, %s),no fire" % (
+				if "r" in self.encoded_map[unicode_player_top][unicode_player_left]:
+					self.UpdateStrategy(3, 1)
+					logging.info("move left to adjust position, player position: (%s, %s, %s, %s),fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				else:
+					self.UpdateStrategy(3, 0)
+					logging.info("move left to adjust position, player position: (%s, %s, %s, %s), no fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
 
@@ -349,12 +375,12 @@ class Agent():
 				enemy_top = enemy[0].top // UNIT_LENGTH
 				enemy_cor = (enemy_top, enemy_left)
 
-				direction = self.pathToDestination(player_cor, enemy_cor,isbonus=False)
+				direction, dir_fire = self.pathToDestination(player_cor, enemy_cor)
 				if (direction != -1):
 					logging.info("ensure the safety of castle, the position of dangerous enemy (%s,%s),"
 					             "the position of player (%s, %s), move to %s" % (enemy[0].top,enemy[0].left,
 						player[0].top, player[0].left, direction))
-					self.UpdateStrategy(direction, 0)
+					self.UpdateStrategy(direction, dir_fire)
 					return
 
 
@@ -377,47 +403,27 @@ class Agent():
 			player_left = player[0].left // UNIT_LENGTH
 			player_top = player[0].top // UNIT_LENGTH
 			player_cor = (player_top, player_left)
-			if "t" in self.encoded_map[dest_top][dest_left]:
-				new_dest = self.nearestP(dest_cor)
-				if new_dest==-1:
-					logging.info("no nearest point for destination")
-				else:
-
-					if self.isDestination(player_cor,new_dest):
-						direction=self.pathToDestination(player_cor,dest_cor,True)
-						if (direction == -1):
-							logging.info("no movement in search of bonus")
-						else:
-							logging.info("move to " + str(direction) + " in search of bonus")
-							self.UpdateStrategy(direction, 1)
-							return
-					else:
-						direction = self.pathToDestination(player_cor, new_dest,False)
-						if (direction == -1):
-							logging.info("no movement in search of bonus")
-						else:
-							logging.info("move to " + str(direction) + " in search of bonus")
-							self.UpdateStrategy(direction, 0)
-							return
-
-			else:
-				direction=self.pathToDestination(player_cor, dest_cor, False)
+			if "s" in self.encoded_map[dest_top][dest_left] or "w" in self.encoded_map[dest_top][dest_left]:
+				return
+			if "r" in self.encoded_map[dest_top][dest_left]:
+				direction,dir_fire=self.pathToDestination(player_cor,dest_cor)
 				if (direction == -1):
 					logging.info("no movement in search of bonus")
 				else:
 					logging.info("move to " + str(direction) + " in search of bonus")
-					self.UpdateStrategy(direction, 0)
+					self.UpdateStrategy(direction, dir_fire)
 					return
+
 		if i_player==1:
 			if player_cor==(12,8):
 				return
 			else:
-				direction=self.pathToDestination(player_cor,(12, 8),isbonus=False)
+				direction, dir_fire=self.pathToDestination(player_cor,(12, 8))
 				if (direction == -1):
 					logging.info("no movement to return to castle")
 				else:
 					logging.info("move to " + str(direction) + " to return to castle")
-					self.UpdateStrategy(direction, 0)
+					self.UpdateStrategy(direction, dir_fire)
 					return
 
 		if len(self.d["enemies"]) != 0:
@@ -436,44 +442,40 @@ class Agent():
 			enemy_top = enemy[0].top // UNIT_LENGTH
 			enemy_cor = (enemy_top, enemy_left)
 
-			direction = self.pathToDestination(player_cor, enemy_cor,False)
+			direction, dir_fire = self.pathToDestination(player_cor, enemy_cor)
 			if (direction != -1):
-				print("move to %s to find enemy, the position of player (%s, %s), the position of enemy (%s, %s)"
-				      % (direction, player[0].top // UNIT_LENGTH, player[0].left // UNIT_LENGTH,
-				         enemy[0].top // UNIT_LENGTH,
-				         enemy[0].left // UNIT_LENGTH))
 				logging.info("move to %s to find enemy, the position of player (%s, %s), the position of enemy (%s, %s)"
 				             % (direction, player[0].top // UNIT_LENGTH, player[0].left // UNIT_LENGTH,
 				                enemy[0].top // UNIT_LENGTH,
 				                enemy[0].left // UNIT_LENGTH))
-				self.UpdateStrategy(direction, 0)
+				self.UpdateStrategy(direction, dir_fire)
 				return
 
 
-	def nearestP(self, point):
-		q=Queue.Queue()
-		q.put(point)
-		cameFrom=dict()
-		cameFrom[point]=None
-		while q.qsize()>0:
-			current=q.get()
-			for i in range(4):
-				new_top=current[0]+self.dir_top[i]
-				new_left=current[1]+self.dir_left[i]
-				if new_top>=0 and new_top<13 and new_left>=0 and new_left<13:
-					if "t" in self.encoded_map[new_top][new_left]:
-						if (new_top,new_left) not in cameFrom.keys():
-							q.put((new_top,new_left))
-							cameFrom[(new_top,new_left)]=current
-					else:
-						return (new_top,new_left)
-		return -1
+	# def nearestP(self, point):
+	# 	q=Queue.Queue()
+	# 	q.put(point)
+	# 	cameFrom=dict()
+	# 	cameFrom[point]=None
+	# 	while q.qsize()>0:
+	# 		current=q.get()
+	# 		for i in range(4):
+	# 			new_top=current[0]+self.dir_top[i]
+	# 			new_left=current[1]+self.dir_left[i]
+	# 			if new_top>=0 and new_top<13 and new_left>=0 and new_left<13:
+	# 				if "r" in self.encoded_map[new_top][new_left]:
+	# 					if (new_top,new_left) not in cameFrom.keys():
+	# 						q.put((new_top,new_left))
+	# 						cameFrom[(new_top,new_left)]=current
+	# 				elif "s" not in self.encoded_map[new_top][new_left] and "w" not in self.encoded_map[new_top][new_left]:
+	# 					return (new_top,new_left)
+	# 	return -1
 
 
 
 
 
-	def pathToDestination(self, player_cor, dest_cor, isbonus=False):
+	def pathToDestination(self, player_cor, dest_cor):
 		player_left = player_cor[1]
 		player_top = player_cor[0]
 
@@ -485,6 +487,7 @@ class Agent():
 
 		openSet = []
 		cameFrom = dict()
+		isfire=dict()
 		gScore = dict()
 		gScore[player_cor] = 0
 		fScore = dict()
@@ -494,14 +497,15 @@ class Agent():
 		while len(openSet) != 0:
 			current = heapq.heappop(openSet)
 			if self.isDestination(current, dest_cor):
-				path = self.reconstructPath(cameFrom, current)
+				path, whetherfire= self.reconstructPath(cameFrom,isfire, current)
 				break
 			# openSet.remove(current)
-			for point_cor in self.neighbour(current, isbonus):
+			for point_cor,fire in self.neighbour(current):
 				tentatice_gScore = gScore[current] + 1
 				# point_cor=(point.left,point.top)
 				if point_cor not in gScore.keys() or (tentatice_gScore < gScore[point_cor]):
 					cameFrom[point_cor] = current
+					isfire[point_cor]=fire
 					gScore[point_cor] = tentatice_gScore
 					fScore[point_cor] = gScore[point_cor] + self.euclidean_distance(point_cor, dest_cor)
 					if point_cor not in openSet:
@@ -512,6 +516,7 @@ class Agent():
 			next = path[1]
 			next_top, next_left = next
 			dir_cmd = False
+			dir_fire=whetherfire[0]
 
 			# up
 			if player_top > next_top:
@@ -525,9 +530,9 @@ class Agent():
 			# right
 			elif player_left < next_left:
 				dir_cmd = 1
-			return dir_cmd
+			return dir_cmd, dir_fire
 		else:
-			return -1
+			return -1,-1
 
 	def euclidean_distance(self,x,y):
 		return math.sqrt((x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2)
@@ -535,14 +540,16 @@ class Agent():
 	def isDestination(self, current_cor, point_cor):
 		return (current_cor[0]==point_cor[0]) and (current_cor[1]==point_cor[1])
 
-	def reconstructPath(self, cameFrom, current):
+	def reconstructPath(self, cameFrom, isfire, current):
 		totalPath = [current]
+		whetherfire=[]
 		while current in cameFrom.keys():
+			whetherfire.insert(0,isfire[current])
 			current = cameFrom[current]
 			totalPath.insert(0, current)
-		return totalPath
+		return totalPath, whetherfire
 
-	def neighbour(self, current, isbonus):
+	def neighbour(self, current):
 		allowable_move = []
 		current_top,current_left=current
 
@@ -550,34 +557,49 @@ class Agent():
 		# move down
 		new_top=current_top+1
 		new_left=current_left
-		if new_top>=self.map_height or (isbonus==False and "t" in self.encoded_map[new_top][new_left]):
+		if new_top>=self.map_height or ("s" in self.encoded_map[new_top][new_left]) or ("w" in self.encoded_map[new_top][new_left])\
+				or (11<=new_top<=12 and 5<=new_left<=7):
 			pass
+		elif "r" in self.encoded_map[new_top][new_left]:
+			allowable_move.append([(new_top,new_left),1])
 		else:
-			allowable_move.append((new_top,new_left))
+			allowable_move.append([(new_top,new_left),0])
 
 		# move right
 		new_top = current_top
 		new_left = current_left + 1
-		if new_left >= self.map_width or (isbonus==False and "t" in self.encoded_map[new_top][new_left]) :
+		if new_left >= self.map_width or ("s" in self.encoded_map[new_top][new_left]) or ("w" in self.encoded_map[new_top][new_left])\
+				or (11 <= new_top <= 12 and 5 <= new_left <= 7):
 			pass
+		elif "r" in self.encoded_map[new_top][new_left]:
+			allowable_move.append([(new_top, new_left),1])
 		else:
-			allowable_move.append((new_top, new_left))
+			allowable_move.append([(new_top, new_left),0])
+
 
 		# move left
 		new_top = current_top
 		new_left = current_left - 1
-		if new_left < 0 or (isbonus==False and "t" in self.encoded_map[new_top][new_left]):
+		if new_left < 0 or ("s" in self.encoded_map[new_top][new_left]) or ("w" in self.encoded_map[new_top][new_left]) \
+			or (11<=new_top<=12 and 5<=new_left<=7):
 			pass
+		elif "r" in self.encoded_map[new_top][new_left]:
+			allowable_move.append([(new_top, new_left),1])
 		else:
-			allowable_move.append((new_top, new_left))
+			allowable_move.append([(new_top, new_left),0])
+
 
 		# move up
 		new_top = current_top - 1
 		new_left = current_left
-		if new_top < 0 or (isbonus==False and "t" in self.encoded_map[new_top][new_left]):
+		if new_top < 0 or ("s" in self.encoded_map[new_top][new_left]) or ("w" in self.encoded_map[new_top][new_left]) \
+				or (11<=new_top<=12 and 5<=new_left<=7):
 			pass
+		elif "r" in self.encoded_map[new_top][new_left]:
+			allowable_move.append([(new_top, new_left),1])
 		else:
-			allowable_move.append((new_top, new_left))
+			allowable_move.append([(new_top, new_left),0])
+
 
 		return allowable_move
 
@@ -587,9 +609,15 @@ class Agent():
 			if hasattr(loadgame.game, "game_over") and loadgame.game.game_over:
 				logging.info("game fail")
 				loadgame.game.running=False
+			if hasattr(loadgame.game, "stage") and loadgame.game.stage>35:
+				os.kill(p.pid, 9)
+				print "kill ai_process!!"
 
 			for i in range(len(tanks.players)):
-				time_passed = self.clock.tick(100)
+				if len(tanks.players)==1:
+					time_passed = self.clock.tick(70)
+				else:
+					time_passed=self.clock.tick(100)
 				self.getAction(i)
 				self.applyAction(i)
 

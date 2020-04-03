@@ -21,6 +21,7 @@ class Combine():
 			time.sleep(3)
 			game.nextLevel()
 
+
 	def loadagent(self):
 		self.agent=agent.Agent(self.num)
 		return self.agent
