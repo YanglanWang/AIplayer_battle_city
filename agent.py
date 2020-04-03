@@ -1,5 +1,5 @@
 import pyautogui
-import  math, heapq, tanks, pygame, time, os, Queue, loadgame, logging
+import  math, heapq, tanks, pygame, time, os, Queue, loadgame, logging,random
 import multiprocessing as mp
 # pyautogui.press('enter')
 format = "%(asctime)s: %(message)s"
@@ -83,30 +83,30 @@ class Agent():
 				bullet_dir = bullet[1]
 
 				# bullet is in the top of player
-				if (encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<4 and player[1]==0):
-					if ((encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<4 and bullet_dir == 3) or
-							(encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<4 and  bullet_dir == 1)):
+				if (encoded_player_top-encoded_bullet_top>0 and encoded_player_top-encoded_bullet_top<4 and player[1]==0):
+					if ((encoded_bullet_left-encoded_player_left>0 and encoded_bullet_left-encoded_player_left<4 and bullet_dir == 3) or
+							(encoded_player_left-encoded_bullet_left>0 and encoded_player_left-encoded_bullet_left<4 and  bullet_dir == 1)):
 						# print("stop to dodge bullet in the top")
 						logging.info("stop to dodge bullets or enemies in the top")
 						return 4
 				# bullet is in below the player
-				if (encoded_bullet_top-encoded_player_top>1 and encoded_bullet_top-encoded_player_top<4 and player[1]==2):
-					if ((encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<4 and bullet_dir == 3) or
-							(encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<4 and  bullet_dir == 1)):
+				if (encoded_bullet_top-encoded_player_top>0 and encoded_bullet_top-encoded_player_top<4 and player[1]==2):
+					if ((encoded_bullet_left-encoded_player_left>0 and encoded_bullet_left-encoded_player_left<4 and bullet_dir == 3) or
+							(encoded_player_left-encoded_bullet_left>0 and encoded_player_left-encoded_bullet_left<4 and  bullet_dir == 1)):
 						# print("dodge bullet in the bottom")
 						logging.info("dodge bullets or enemies in the bottom")
 						return 4
 				# bullet is in the left part of player
-				if (encoded_player_left-encoded_bullet_left>1 and encoded_player_left-encoded_bullet_left<4 and  player[1] == 3):
-					if ((encoded_bullet_top - encoded_player_top > 1 and encoded_bullet_top - encoded_player_top <4 and bullet_dir==0) or
-						(encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<4 and bullet_dir==2)):
+				if (encoded_player_left-encoded_bullet_left>0 and encoded_player_left-encoded_bullet_left<4 and  player[1] == 3):
+					if ((encoded_bullet_top - encoded_player_top > 0 and encoded_bullet_top - encoded_player_top <4 and bullet_dir==0) or
+						(encoded_player_top-encoded_bullet_top>0 and encoded_player_top-encoded_bullet_top<4 and bullet_dir==2)):
 						# print("dodge bullet in the left")
 						logging.info("dodge bullets or enemies in the left")
 						return 4
 				# bullet is in the right part of player
-				if (encoded_bullet_left-encoded_player_left>1 and encoded_bullet_left-encoded_player_left<4 and  player[1] == 1):
-					if ((encoded_bullet_top - encoded_player_top > 1 and encoded_bullet_top - encoded_player_top <4 and bullet_dir==0) or
-						(encoded_player_top-encoded_bullet_top>1 and encoded_player_top-encoded_bullet_top<4 and bullet_dir==2)):
+				if (encoded_bullet_left-encoded_player_left>0 and encoded_bullet_left-encoded_player_left<4 and  player[1] == 1):
+					if ((encoded_bullet_top - encoded_player_top > 0 and encoded_bullet_top - encoded_player_top <4 and bullet_dir==0) or
+						(encoded_player_top-encoded_bullet_top>0 and encoded_player_top-encoded_bullet_top<4 and bullet_dir==2)):
 						# print("dodge bullet in the right")
 						logging.info("dodge bullets or enemies in the right")
 						return 4
@@ -169,7 +169,8 @@ class Agent():
 			current_left = encoded_player_left + self.dir_left[i]*j
 			current_top = encoded_player_top + self.dir_top[i]*j
 			if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height
-					or "s" in self.encoded_map[current_top][current_left] or "r" in self.encoded_map[current_top][current_left]):
+					or "s" in self.encoded_map[current_top][current_left] or "r" in self.encoded_map[current_top][current_left])\
+					or "w" in self.encoded_map[current_top][current_left]:
 				break
 			if ("e" in self.encoded_map[current_top][current_left]):
 				if len(self.d["players"])>1:
@@ -179,12 +180,12 @@ class Agent():
 							encoded_player_top<=other_encoded_player_top<=current_top):
 						break
 					else:
-						return i
+						return i,j
 				else:
-					return i
+					return i,j
 				logging.info("the position of origin (%s, %s), the position of enemy (%s, %s)"%(encoded_player_top,
 				                                    encoded_player_left, current_top, current_left))
-		return -1
+		return -1,-1
 
 	def check_bonus(self, player, i,i_player):
 		encoded_player_left=player[0].left//UNIT_LENGTH
@@ -192,7 +193,8 @@ class Agent():
 		for j in range(14):
 			current_left = encoded_player_left + self.dir_left[i]*j
 			current_top = encoded_player_top + self.dir_top[i]*j
-			if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height):
+			if (current_left < 0 or current_left >= self.map_width or current_top < 0 or current_top >= self.map_height) or \
+				"s" in self.encoded_map[current_top][current_left] 	or "w" in self.encoded_map[current_top][current_left]:
 				break
 			if ("o" in self.encoded_map[current_top][current_left] ):
 				if len(self.d["players"]) > 1:
@@ -233,14 +235,6 @@ class Agent():
 		unicode_player_left=player[0].left//UNIT_LENGTH
 		player_cor=(unicode_player_top,unicode_player_left)
 
-		# dodge the bullets and enemies
-		if len(self.d["bullets"]) != 0 or len(self.d["enemies"])!=0:
-			direction = self.dodge_bullets_enemies(player)
-			if (direction != -1):
-				logging.info("Dodge bullets or enemies")
-				self.UpdateStrategy(direction, 0)
-				return
-
 
 		# fire to bullets in the same vertical or horizontal direction
 		if len(self.d["bullets"]) != 0:
@@ -253,99 +247,199 @@ class Agent():
 
 		# adjust position and check for tanks and bonus in this direction
 		if player[1] == 0:
-			direction1 = self.check_tanks(player, 0, i_player)
-			direction2 = self.check_bonus(player, 0,i_player)
-			if direction1 != -1 or direction2!=-1:
-				self.UpdateStrategy(0, 1)
-				logging.info("move up to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+			direction1,dis1 = self.check_tanks(player, 0, i_player)
+			direction2, dis2 = self.check_tanks(player, 2, i_player)
+			if direction1 != -1 and direction2!=-1:
+				if(dis1<dis2):
+					self.UpdateStrategy(direction1, 1)
+					logging.info("move up to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+				else:
+					self.UpdateStrategy(direction2, 1)
+					logging.info("move down to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+			elif direction1 != -1:
+				self.UpdateStrategy(direction1, 1)
+				logging.info("move up to attack enemy, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
-			direction = self.check_tanks(player, 2,i_player)
-			direction2= self.check_bonus(player, 2, i_player)
-			if direction != -1 or direction2!=-1:
-				self.UpdateStrategy(2, 1)
-				logging.info("move down to attack enemyor bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+			elif direction2!=-1:
+				self.UpdateStrategy(direction2, 1)
+				logging.info("move down to attack enemy, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
+
+			direction1 = self.check_bonus(player, 0, i_player)
+			if direction1 != -1:
+				self.UpdateStrategy(direction1, 1)
+				logging.info("move up to attack bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				return
+
+			direction2 = self.check_bonus(player, 2, i_player)
+			if direction2 != -1:
+				self.UpdateStrategy(direction, 1)
+				logging.info("move down to attack bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				return
+
+
 			if player[0].top % UNIT_LENGTH > 3:
 				if "r" in self.encoded_map[unicode_player_top][unicode_player_left]:
 					logging.info("move up to adjust position, player position: (%s, %s, %s, %s), fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
 					self.UpdateStrategy(0, 1)
-				else:
+					return
+				elif "w" not in self.encoded_map[unicode_player_top][unicode_player_left] and \
+						"s" not in self.encoded_map[unicode_player_top][unicode_player_left]:
 					logging.info("move up to adjust position, player position: (%s, %s, %s, %s), no fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
 					self.UpdateStrategy(0, 0)
-				return
+					return
 
 		if player[1] == 2:
-			direction = self.check_tanks(player, 2, i_player)
-			direction2 = self.check_bonus(player, 2, i_player)
-			if direction != -1 or direction2!=-1:
-				logging.info("move down to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+			direction1, dis1 = self.check_tanks(player, 2, i_player)
+			direction2,dis2 = self.check_tanks(player, 0, i_player)
+			if (direction1!=-1 and direction2!=-1):
+				if(dis1<dis2):
+					logging.info("move down to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					self.UpdateStrategy(direction1, 1)
+					return
+				else:
+					logging.info("move up to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					self.UpdateStrategy(direction2, 1)
+					return
+			elif direction1!=-1:
+				logging.info("move down to attack enemy, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
-				self.UpdateStrategy(direction, 1)
+				self.UpdateStrategy(direction1, 1)
 				return
-			direction = self.check_tanks(player, 0, i_player)
-			direction2=self.check_bonus(player,0, i_player)
-			if direction != -1 or direction2!=-1:
+			elif direction2!=-1:
 				logging.info("move up to attack enemy, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
-				self.UpdateStrategy(direction, 1)
+				self.UpdateStrategy(direction2, 1)
+				return
+
+			direction2 = self.check_bonus(player, 2, i_player)
+			if direction2 != -1:
+				logging.info("move down to attack bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				self.UpdateStrategy(direction2, 1)
+				return
+
+			direction2 = self.check_bonus(player, 0, i_player)
+			if direction2 != -1:
+				logging.info("move up to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				self.UpdateStrategy(direction2, 1)
 				return
 
 			if player[0].top % UNIT_LENGTH > 3:
-				if "r" in self.encoded_map[unicode_player_top+1][unicode_player_left]:
+				if "r" in self.encoded_map[unicode_player_top + 1][unicode_player_left]:
 					logging.info("move down to adjust position, player position: (%s, %s, %s, %s), fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
 					self.UpdateStrategy(2, 1)
-				else:
+					return
+				elif "w" not in self.encoded_map[unicode_player_top + 1][unicode_player_left] and \
+						"s" not in self.encoded_map[unicode_player_top + 1][unicode_player_left]:
 					logging.info("move down to adjust position, player position: (%s, %s, %s, %s), no fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
-					self.UpdateStrategy(2,0)
-				return
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					self.UpdateStrategy(2, 0)
+					return
 
 		if player[1] == 1:
-			direction = self.check_tanks(player, 1, i_player)
-			direction2=self.check_bonus(player, 1,i_player)
-			if direction != -1 or direction2!=-1:
-				self.UpdateStrategy(direction, 1)
-				logging.info("move right to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+			direction1,dis1 = self.check_tanks(player, 1, i_player)
+			direction2,dis2 = self.check_tanks(player, 3, i_player)
+			if (direction1 != -1 and direction2!=-1):
+				if(dis1<dis2):
+					self.UpdateStrategy(direction1, 1)
+					logging.info("move right to attack enemey, player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+				else:
+					self.UpdateStrategy(direction2, 1)
+					logging.info("move left to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+			elif direction1 != -1:
+				self.UpdateStrategy(direction1, 1)
+				logging.info("move right to attack enemey, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
-			direction = self.check_tanks(player, 3,i_player)
-			direction2=self.check_bonus(player,3,i_player)
-			if direction != -1 or direction2!=-1:
-				self.UpdateStrategy(direction, 1)
-				logging.info("move left to attack enemey or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+			elif direction2!=-1:
+				self.UpdateStrategy(direction2, 1)
+				logging.info("move left to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				return
+
+
+			direction2 = self.check_bonus(player, 1, i_player)
+			if direction2 != -1:
+				self.UpdateStrategy(direction2, 1)
+				logging.info("move right to attack bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				return
+
+			direction2 = self.check_bonus(player, 3, i_player)
+			if direction2 != -1:
+				self.UpdateStrategy(direction2, 1)
+				logging.info("move left to attack bonus's tile, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
 
 			if player[0].left % UNIT_LENGTH > 3:
-				if "r" in self.encoded_map[unicode_player_top][unicode_player_left+1]:
+				if "r" in self.encoded_map[unicode_player_top][unicode_player_left + 1]:
 					self.UpdateStrategy(1, 1)
 					logging.info("move right to adjust position, player position: (%s, %s, %s, %s), fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
-				else:
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+				elif ("w" not in self.encoded_map[unicode_player_top][unicode_player_left + 1] and \
+				      "s" not in self.encoded_map[unicode_player_top][unicode_player_left + 1]):
 					self.UpdateStrategy(1, 0)
 					logging.info("move right to adjust position, player position: (%s, %s, %s, %s), no fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
-				return
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
 
 		if player[1] == 3:
-			direction = self.check_tanks(player, 3, i_player)
-			direction2=self.check_bonus(player,3, i_player)
-			if direction != -1 or direction2!=-1:
-				self.UpdateStrategy(direction, 1)
-				logging.info("move left to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+			direction1,dis1 = self.check_tanks(player, 3, i_player)
+			direction2,dis2 = self.check_tanks(player, 1, i_player)
+			if (direction1 != -1 and direction2!=-1):
+				if(dis1<dis2):
+					self.UpdateStrategy(direction1, 1)
+					logging.info("move left to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+				else:
+					self.UpdateStrategy(direction2, 1)
+					logging.info("move right to attack enemy , player position: (%s, %s, %s, %s), fire" % (
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+			elif direction1 != -1:
+				self.UpdateStrategy(direction1, 1)
+				logging.info("move left to attack enemy, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				return
+			elif direction2!=-1:
+				self.UpdateStrategy(direction2, 1)
+				logging.info("move right to attack enemy , player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
 
-			direction = self.check_tanks(player, 1, i_player)
-			direction2=self.check_bonus(player,1, i_player)
-			if direction != -1 or direction2!=-1:
-				self.UpdateStrategy(direction, 1)
-				logging.info("move right to attack enemy or bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+			direction2 = self.check_bonus(player, 3, i_player)
+			if direction2 != -1:
+				self.UpdateStrategy(direction2, 1)
+				logging.info("move left to attack bonus's tile, player position: (%s, %s, %s, %s), fire" % (
+					player[0].top, player[0].left, player[0].bottom, player[0].right))
+				return
+
+			direction2 = self.check_bonus(player, 1, i_player)
+			if direction2 != -1:
+				self.UpdateStrategy(direction2, 1)
+				logging.info("move right to attack bonus's tile, player position: (%s, %s, %s, %s), fire" % (
 					player[0].top, player[0].left, player[0].bottom, player[0].right))
 				return
 
@@ -353,12 +447,23 @@ class Agent():
 				if "r" in self.encoded_map[unicode_player_top][unicode_player_left]:
 					self.UpdateStrategy(3, 1)
 					logging.info("move left to adjust position, player position: (%s, %s, %s, %s),fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
-				else:
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+				elif "w" not in self.encoded_map[unicode_player_top][unicode_player_left] and \
+						"s" not in self.encoded_map[unicode_player_top][unicode_player_left]:
 					self.UpdateStrategy(3, 0)
 					logging.info("move left to adjust position, player position: (%s, %s, %s, %s), no fire" % (
-					player[0].top, player[0].left, player[0].bottom, player[0].right))
+						player[0].top, player[0].left, player[0].bottom, player[0].right))
+					return
+
+		# dodge the bullets and enemies
+		if len(self.d["bullets"]) != 0 or len(self.d["enemies"])!=0:
+			direction = self.dodge_bullets_enemies(player)
+			if (direction != -1):
+				logging.info("Dodge bullets or enemies")
+				self.UpdateStrategy(direction, 0)
 				return
+
 
 		# ensure the safety of castle
 		if len(self.d["enemies"]) != 0:
@@ -375,6 +480,7 @@ class Agent():
 				enemy_top = enemy[0].top // UNIT_LENGTH
 				enemy_cor = (enemy_top, enemy_left)
 
+
 				direction, dir_fire = self.pathToDestination(player_cor, enemy_cor)
 				if (direction != -1):
 					logging.info("ensure the safety of castle, the position of dangerous enemy (%s,%s),"
@@ -387,7 +493,7 @@ class Agent():
 		# check for tanks in the four directions
 		if len(self.d["enemies"]) != 0:
 			for i in range(4):
-				direction = self.check_tanks(player, i,i_player)
+				direction,dis = self.check_tanks(player, i,i_player)
 				if (direction != -1):
 					print "find tank, fire to direction %s" % direction
 					self.UpdateStrategy(direction, 1)
@@ -451,7 +557,21 @@ class Agent():
 				self.UpdateStrategy(direction, dir_fire)
 				return
 
+		if unicode_player_top==0 and unicode_player_left==0 and "e" not in self.encoded_map[0][0]:
+			self.UpdateStrategy(1,0)
+			return
 
+		if unicode_player_top==0 and unicode_player_left==6 and "e" not in self.encoded_map[0][6]:
+			self.UpdateStrategy(1,0)
+			return
+
+		if unicode_player_top==0 and unicode_player_left==5 and "e" not in self.encoded_map[0][6]:
+			self.UpdateStrategy(3,0)
+			return
+
+		if unicode_player_top==0 and (unicode_player_left==12 or unicode_player_left==11) and "e" not in self.encoded_map[0][12]:
+			self.UpdateStrategy(3,0)
+			return
 	# def nearestP(self, point):
 	# 	q=Queue.Queue()
 	# 	q.put(point)
@@ -609,17 +729,22 @@ class Agent():
 			if hasattr(loadgame.game, "game_over") and loadgame.game.game_over:
 				logging.info("game fail")
 				loadgame.game.running=False
-			if hasattr(loadgame.game, "stage") and loadgame.game.stage>35:
-				os.kill(p.pid, 9)
-				print "kill ai_process!!"
+			if hasattr(loadgame.game, "active") and (not loadgame.game.active) and hasattr(loadgame.game, "stage") \
+					and loadgame.game.stage >= 35:
+				loadgame.game.running=False
+				os._exit(0)
+
 
 			for i in range(len(tanks.players)):
 				if len(tanks.players)==1:
-					time_passed = self.clock.tick(70)
+					time_passed = self.clock.tick(50)
 				else:
 					time_passed=self.clock.tick(100)
 				self.getAction(i)
 				self.applyAction(i)
+				if tanks.players[i].paralised:
+					tanks.players[i].paralised=False
+
 
 	def applyAction(self, i):
 		logging.info("run applyAction")
@@ -646,6 +771,8 @@ class Agent():
 				if operations[0] < 4:
 					player.pressed[operations[0]] = True
 					logging.info("player 's position before movement(%s,%s)"%(player.rect.top,player.rect.left))
+				elif operations[0]==4:
+					logging.info("no movement")
 				if player.pressed[0] == True:
 					player.move(DIR_UP)
 					logging.info("move up")
@@ -654,7 +781,7 @@ class Agent():
 					logging.info("move right")
 				elif player.pressed[2] == True:
 					player.move(DIR_DOWN)
-					print("move down")
+					logging.info("move down")
 					logging.info("move down")
 				elif player.pressed[3] == True:
 					player.move(DIR_LEFT)
@@ -662,8 +789,8 @@ class Agent():
 					logging.info("move left")
 				if operations[0] < 4:
 					player.pressed[operations[0]] = False
+					logging.info("press false")
 				logging.info("player 's position after movement (%s,%s)" % (player.rect.top, player.rect.left))
-				logging.info("press false")
 
 
 

@@ -18,9 +18,12 @@ class Combine():
 		game.nextLevel()
 		while not game.running:
 			game.stage-=1
+			for player in tanks.players:
+				player.lives=3
 			time.sleep(3)
 			game.nextLevel()
-
+			if hasattr(game, "stage") and game.stage>=35:
+				os._exit(0)
 
 	def loadagent(self):
 		self.agent=agent.Agent(self.num)
