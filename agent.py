@@ -549,7 +549,9 @@ class Agent():
 		while True:
 			logging.info("game_over check")
 			if hasattr(loadgame.game, "game_over") and loadgame.game.game_over:
-				os.kill(p.pid, 9)
+				logging.info("game fail")
+				loadgame.game.running=False
+
 			for i in range(len(tanks.players)):
 				time_passed = self.clock.tick(50)
 				self.getAction(i)
@@ -598,23 +600,6 @@ class Agent():
 					player.pressed[operations[0]] = False
 				logging.info("player 's position after movement (%s,%s)" % (player.rect.top, player.rect.left))
 				logging.info("press false")
-
-
-	def kill_ai_process(self,p):
-		p.terminate()
-		os.kill(p.pid,9)
-		print "kill process!!"
-		logging.info("kill process!")
-
-	def clear_queue(self,queue):
-		if queue.empty()!=True:
-			try:
-				queue.get(False)
-				print "clear queue!!"
-				logging.info("clear queue")
-			except Queue.Empty:
-				print "Queue already is empty!!"
-				logging.info("Queue already is empty")
 
 
 

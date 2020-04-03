@@ -1420,6 +1420,7 @@ class Game():
         self.game_over_y = 416+40
 
         self.game_over = True
+
         gtimer.add(3000, lambda :self.showScores(), 1)
 
     def gameOverScreen(self):
@@ -2092,8 +2093,8 @@ class Game():
             gtimer.update(time_passed)
 
             self.draw()
+        logging.info("end circulation")
 
-        logging.info("self.running false")
 
 gtimer = Timer()
 

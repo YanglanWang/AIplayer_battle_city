@@ -2,9 +2,8 @@ import pyautogui
 import  math, heapq, tanks_change, pygame, time, os
 import multiprocessing as mp
 from multiprocessing import Manager
-# pyautogui.press('enter')
-(TILE_EMPTY, TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE) = range(6)
 
+(TILE_EMPTY, TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE) = range(6)
 
 class LoadGame(tanks_change.Game):
 	def __init__(self):

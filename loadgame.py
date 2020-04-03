@@ -10,16 +10,16 @@ class Combine():
 		self.stage=stage
 		self.num=num
 
-
 	def loadtanks(self):
 		game.stage=self.stage
 		game.nr_of_players=self.num
 	# print("stage %s starts, %s players"%(game.stage, game.nr_of_players))
 		logging.info("stage %s starts, %s players"%(game.stage, game.nr_of_players))
-
 		game.nextLevel()
-
-
+		while not game.running:
+			game.stage-=1
+			time.sleep(3)
+			game.nextLevel()
 
 	def loadagent(self):
 		self.agent=agent.Agent(self.num)
@@ -66,7 +66,6 @@ class Combine():
 		logging.info("game_over check")
 		if hasattr(game, "game_over") and game.game_over:
 			os.kill(p2.pid,9)
-
 
 
 	def start(self):
