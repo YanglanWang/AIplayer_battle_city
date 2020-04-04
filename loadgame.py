@@ -80,10 +80,10 @@ class Combine():
 		# self.loadtanks()
 			# time.sleep(0.1)
 
-	def kill_process(self, p):
-		#p.terminate()
-		os.kill(p.pid,9)
-		print "kill ai_process!!"
+	# def kill_process(self, p):
+	# 	#p.terminate()
+	# 	os.kill(p.pid,9)
+	# 	print "kill ai_process!!"
 
 if __name__ == "__main__":
 	stage=0
