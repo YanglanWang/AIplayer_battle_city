@@ -26,7 +26,7 @@ In agent.py, Agent class is created, including encodeMap(), dodge_bullets_enemie
 
 ## Algorithm
 
-![algorithm chartflow](battle-city-algorithm.png=100x20)
+![algorithm chartflow](battle-city-algorithm.png=250x)
 
 - One player mode:
 The whole check process(as show in chartflow) in getAction is used.
