@@ -8,6 +8,29 @@ def clicked():
 	c = loadgame.Combine(stage, num)
 	c.start()
 
+def update():
+	if len(tanks.players)==2:
+		lbl_player2 = Label(window, text="PLAYER 2")
+		lbl_player2.grid(column=0, row=8)
+
+		live_2 = StringVar()
+		lbl_live2 = Label(window, textvariable=live_2)
+		lbl_live2.grid(column=1, row=8)
+
+		pos_2 = StringVar()
+		lbl_pos2 = Label(window, textvariable=pos_2)
+		lbl_pos2.grid(column=2, row=8)
+
+		live_2.set(tanks.players[1].lives)
+		pos_2.set(tanks.players[1].rect.topleft)
+		live_1.set(tanks.players[0].lives)
+		pos_1.set(tanks.players[0].rect.topleft)
+	if len(tanks.players)==1:
+		live_1.set(tanks.players[0].lives)
+		pos_1.set(tanks.players[0].rect.topleft)
+
+	window.after(200,update)
+
 window=Tk()
 window.geometry('600x200')
 window.title("AI battle city")
@@ -48,37 +71,5 @@ lbl_pos1 = Label(window, textvariable=pos_1)
 lbl_pos1.grid(column=2, row=7 )
 
 
-
-
-def update():
-	if len(tanks.players)==2:
-		lbl_player2 = Label(window, text="PLAYER 2")
-		lbl_player2.grid(column=0, row=8)
-
-		live_2 = StringVar()
-		lbl_live2 = Label(window, textvariable=live_2)
-		lbl_live2.grid(column=1, row=8)
-
-		pos_2 = StringVar()
-		lbl_pos2 = Label(window, textvariable=pos_2)
-		lbl_pos2.grid(column=2, row=8)
-
-		live_2.set(tanks.players[1].lives)
-		pos_2.set(tanks.players[1].rect.topleft)
-		live_1.set(tanks.players[0].lives)
-		pos_1.set(tanks.players[0].rect.topleft)
-	if len(tanks.players)==1:
-		live_1.set(tanks.players[0].lives)
-		pos_1.set(tanks.players[0].rect.topleft)
-
-	window.after(200,update)
 update()
-
-
-
-
-# p=threading.Thread(target=update,)
-# p.start()
-
-
 window.mainloop()

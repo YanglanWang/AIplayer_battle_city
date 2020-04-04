@@ -1,4 +1,4 @@
-import loadgame,threading
+import loadgame
 if __name__ == "__main__":
 	stage=0
 	num=2
