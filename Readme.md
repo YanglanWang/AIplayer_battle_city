@@ -6,7 +6,7 @@ forked from
 * [softpedia.com](http://linux.softpedia.com/get/GAMES-ENTERTAINMENT/Arcade/BattleCity-Tanks-59571.shtml)
 * [code.google.com](https://code.google.com/archive/p/battle-city-tanks/)
 
-This is the auto test script in playing with battle-city. The original game script is forked from https://github.com/shinima/battle-city.git. For the convenience of editing in original game script--tanks.py, my test script didn't change this file by using threading.
+This is the auto test script in playing with battle-city. The original game script is forked from https://github.com/galaamn/battle-city.git. For the convenience of editing in original game script--tanks.py, my test script didn't change this file by using threading.
 ## Keys and arguments
 
 ### Controls in original game
