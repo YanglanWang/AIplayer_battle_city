@@ -66,10 +66,6 @@ class Combine():
 		d["tiles"]=game.level.mapr
 		return d
 
-	def game_over(self,p2):
-		logging.info("game_over check")
-		if hasattr(game, "game_over") and game.game_over:
-			os.kill(p2.pid,9)
 
 
 	def start(self):

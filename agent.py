@@ -532,6 +532,7 @@ class Agent():
 					self.UpdateStrategy(direction, dir_fire)
 					return
 
+		# find path to one enemy
 		if len(self.d["enemies"]) != 0:
 			enemies_sorted_player = sorted(self.d["enemies"], key=lambda enemy:
 			self.euclidean_distance((enemy[0].top // UNIT_LENGTH, enemy[0].left // UNIT_LENGTH),
