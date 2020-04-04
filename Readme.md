@@ -16,7 +16,8 @@ From the convenience of editing in original game script--tanks.py, my test didn'
 
 - Press "-f" to start the game in fullscreen mode
 - Press the "q" key will quit the game
-![gorithm charflow](https://www.lucidchart.com/invitations/accept/c0209e27-c222-4841-a673-831b8313cc2b)
+![algorithm charflow](/battle-city-algorithm.png)
+
 ## Algorithm
 
 - One player mode:
