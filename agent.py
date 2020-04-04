@@ -3,8 +3,8 @@ import  math, heapq, tanks, pygame, time, os, Queue, loadgame, logging,random
 import multiprocessing as mp
 # pyautogui.press('enter')
 format = "%(asctime)s: %(message)s"
-logging.basicConfig(format=format,level=logging.INFO, datefmt="%H:%M:%S")
-# logging.basicConfig(format=format, filename='test.log',level=logging.INFO, datefmt="%H:%M:%S")
+# logging.basicConfig(format=format,level=logging.INFO, datefmt="%H:%M:%S")
+logging.basicConfig(format=format, filename='test.log',level=logging.INFO, datefmt="%H:%M:%S")
 
 (TILE_EMPTY, TILE_BRICK, TILE_STEEL, TILE_WATER, TILE_GRASS, TILE_FROZE) = range(6)
 UNIT_LENGTH=32
@@ -782,10 +782,8 @@ class Agent():
 				elif player.pressed[2] == True:
 					player.move(DIR_DOWN)
 					logging.info("move down")
-					logging.info("move down")
 				elif player.pressed[3] == True:
 					player.move(DIR_LEFT)
-					print("move left")
 					logging.info("move left")
 				if operations[0] < 4:
 					player.pressed[operations[0]] = False
