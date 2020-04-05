@@ -495,7 +495,7 @@ class Agent():
 			for i in range(4):
 				direction,dis = self.check_tanks(player, i,i_player)
 				if (direction != -1):
-					print "find tank, fire to direction %s" % direction
+					# print "find tank, fire to direction %s" % direction
 					self.UpdateStrategy(direction, 1)
 					logging.info("find tank, fire to direction %s" % direction)
 					return
